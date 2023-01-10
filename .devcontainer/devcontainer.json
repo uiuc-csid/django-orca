@@ -1,0 +1,80 @@
+// For format details, see https://aka.ms/vscode-remote/devcontainer.json
+{
+	"name": "django-orca",
+	"dockerComposeFile": "docker-compose.yaml",
+	"service": "app",
+	"workspaceFolder": "/workspace/app",
+	"postCreateCommand": "curl -sSL https://install.python-poetry.org | python3 - && poetry install --no-interaction && poetry run pre-commit install",
+    "remoteUser": "vscode",
+
+	"customizations": {
+		"vscode": {
+			"settings": {
+				"terminal.integrated.defaultProfile.linux": "zsh",
+				"python.linting.enabled": true,
+				"python.linting.mypyEnabled": true,
+				"python.formatting.provider": "black",
+				"python.testing.unittestEnabled": false,
+    			"python.testing.pytestEnabled": true,
+				"python.testing.pytestArgs": [
+					"."
+				],
+				"files.watcherExclude": {
+					"**/.git/objects/**": true,
+					"**/.git/subtree-cache/**": true,
+					"**/node_modules/**": true,
+					"**/.pytest_cache/**": true,
+                    "**/.mypy_cache/**": true,
+					"**/.venv/**": true
+				},
+				"files.associations": {
+					"**/jinja2/**/*.html": "jinja-html",
+					"**/templates/**/*.html": "django-html"
+				},
+				"emmet.includeLanguages": {
+					"django-html": "html"
+				},
+				"todo-tree.filtering.excludeGlobs": [
+					"**/node_modules",
+					"**/docs/stories/**"
+				],
+				"coverage-gutters.coverageFileNames": [
+					"lcov.info",
+					"cov.xml",
+					"coverage.xml",
+					"jacoco.xml",
+					"coverage.cobertura.xml"
+				],
+				"coverage-gutters.coverageReportFileName": "htmlcov/index.html",
+				"coverage-gutters.coverageBaseDir": "tmp/"
+			},
+			"extensions": [
+				"ms-python.python",
+				"ms-python.vscode-pylance",
+				"piotrpalarz.vscode-gitignore-generator",
+				"mikestead.dotenv",
+				"batisteo.vscode-django",
+				"eamodio.gitlens",
+				"njpwerner.autodocstring",
+				"bungcip.better-toml",
+				"bierner.github-markdown-preview",
+				"Gruntfuggly.todo-tree",
+				"GitHub.vscode-pull-request-github",
+				"cschleiden.vscode-github-actions",
+				"EditorConfig.EditorConfig",
+				"SimonSiefke.svg-preview",
+				"ryanluker.vscode-coverage-gutters",
+				"DavidAnson.vscode-markdownlint",
+                "samuelcolvin.jinjahtml"
+			]
+		}
+	},
+
+	"features": {
+		"ghcr.io/devcontainers/features/common-utils:1": {
+            "username": "vscode",
+			"installZsh": true,
+        	"installOhMyZsh": false
+		}
+	}
+}

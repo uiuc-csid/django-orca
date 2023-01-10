@@ -1,0 +1,43 @@
+---
+version: '3.4'
+
+x-database-variables: &database-variables
+  POSTGRES_USER: orca
+  POSTGRES_PASSWORD: orcatestpass
+  POSTGRES_DB: orca
+  DATABASE_URL: postgresql://orca:orcatestpass@db:5432/rosterizer
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    environment:
+      <<: *database-variables
+      DJANGO_ENV: development
+      DEBUG: 'True'
+      INTERNAL_IPS: 130.126.9.229,192.241.58.177
+      EMAIL_URL: filemail:///logs/mail.log
+      NODE_ENV: development
+      IPYTHONDIR: /ipython
+    volumes:
+      - ..:/workspace/app:cached
+      - homedir:/home/vscode
+      - ipython:/ipython
+      - poetry_cache:/var/cache/pypoetry
+
+    command: sleep infinity
+    init: true
+    depends_on:
+      - db
+
+  db:
+    image: postgres
+    restart: unless-stopped
+    environment:
+      <<: *database-variables
+
+volumes:
+  homedir:
+  ipython:
+  poetry_cache:

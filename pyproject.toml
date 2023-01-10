@@ -1,0 +1,97 @@
+[tool.poetry]
+name = "django-orca"
+version = "0.0.1"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+packages = [{include = "django_orca"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+Django = "^4.0.0"
+
+[tool.poetry.group.dev.dependencies]
+ipython = "*"
+mypy = "*"
+mypy-extensions = "*"
+django-stubs = "^1.13.0"
+pytest = "*"
+pytest-cov = "^4.0.0"
+pytest-django = "*"
+pytest-factoryboy = "*"
+rope = "*"
+pyparsing = "^3.0.8"
+pydot = "^1.4.2"
+black = "^22.3.0"
+django-migration-linter = "^4.1.0"
+flakeheaven = "^3.0.0"
+pre-commit = "^2.20.0"
+isort = "^5.10.1"
+nplusone = "^1.0.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+junit_family = "xunit2"
+DJANGO_SETTINGS_MODULE = "example_project.settings"
+python_files = ["tests.py", "test_*.py", "*_tests.py"]
+
+
+[tool.mypy]
+python_version = 3.9
+plugins = ["mypy_django_plugin.main"]
+
+allow_redefinition = false
+check_untyped_defs = true
+disallow_untyped_decorators = true
+# disallow_any_explicit = true
+# disallow_any_generics = true
+# disallow_untyped_calls = true
+ignore_errors = false
+ignore_missing_imports = true
+implicit_reexport = false
+local_partial_types = true
+strict_optional = true
+strict_equality = true
+no_implicit_optional = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+# warn_unused_configs = true
+warn_unreachable = true
+warn_no_return = true
+
+# Django migrations should not produce any errors:
+[[tool.mypy.overrides]]
+module = [
+    "example_project.core.migrations",
+]
+ignore_errors = true
+
+[tool.django-stubs]
+django_settings_module = "example_project.settings"
+
+[tool.flakeheaven]
+exclude = [".venv", ".git", "**/migrations/*"]
+show_source = true
+format = "grouped"
+
+# list of plugins and rules for them
+[tool.flakeheaven.plugins]
+pycodestyle = ["+*", "-E501", "-W503", "-E266"]
+pyflakes = ["+*", "-F403", "-F405"]
+flake8-commas = ["+*"]
+flake8-quotes = ["+*"]
+pylint = ["+F*", "+E*", "-E0611", "-E1101", "-E0401", "-E1102", "-E1123"]
+
+[tool.coverage.run]
+omit = [
+    "/*migrations*",
+    "/*tests*",
+    "/*fixtures.py",
+    "*management/commands*",
+]
+
+[tool.isort]
+profile = "black"
