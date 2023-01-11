@@ -93,8 +93,7 @@ def has_permission(user, permission, obj=None, any_object=False, persistent=None
         # Try to look even further
         # for possible parent fields.
         parents_list = get_parents(current_obj)
-        for parent in parents_list:
-            stack.append(parent)
+        stack.extend(parents_list)
 
         # Force another iteration in case of any permission was
         # found using object-related roles. Using 'None', we

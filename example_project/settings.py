@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django_orca",
+    "example_project.main",
 ]
 
 MIDDLEWARE = [
@@ -71,9 +72,11 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "example_project.wsgi.application"
 
+AUTH_USER_MODEL = "main.User"
+
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
-    "django_orca.auth.backend.OrcaBackend"
+    "django_orca.auth.backend.OrcaBackend",
 ]
 
 # Database

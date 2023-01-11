@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from typing import List, Optional, Type, Union
 
 from django.apps import apps
@@ -11,14 +12,19 @@ DENY_MODE = 1
 ALL_MODELS = -1
 
 
-class Role(object):
+class Role(ABC):
     """
     Role
 
     This abstract class is the base for all other roles
     """
 
-    verbose_name: str
+    @property
+    @abstractmethod
+    def verbose_name(self) -> str:
+        pass
+
+    all_models: bool = False
     models: List[Union[Type[Model], str]]
 
     allow: Optional[List[str]]
@@ -69,7 +75,7 @@ class Role(object):
     @classmethod
     def get_models(cls):
         cls.__protect()
-        if cls.models == ALL_MODELS:
+        if cls.all_models:
             return list(apps.get_models())  # All models known by Django.
         return list(cls.models)
 
