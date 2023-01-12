@@ -1,0 +1,31 @@
+name: Test Project
+
+on: [push]
+
+env:
+  TEST_REPORT_LOCATION: reports/pytest-report.xml
+
+jobs:
+  test:
+    name: Test
+      steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Setup python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'poetry'
+      - name: Install poetry
+        uses: abatilo/actions-poetry@v2
+      - name: Install python packages
+        run: poetry install
+      - name: Run tests
+        run: poetry run pytest --junit-xml=${{ env.TEST_REPORT_LOCATION }} --cov-report=xml --cov=django_orca
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          junit_files: "${{ env.TEST_REPORT_LOCATION }}"
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
