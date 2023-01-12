@@ -1,6 +1,8 @@
 import inspect
 import logging
-from typing import Type
+from typing import Optional, Type
+
+from django.core.cache.backends.base import BaseCache
 
 from django_orca.roles import Role
 
@@ -41,18 +43,6 @@ def get_config(key, default):
     return default
 
 
-def orca_cache():
-    """
-    Proxy method used to get the cache
-    object belonging to orca.
-    """
-    from django.core.cache import caches
-
-    return caches[
-        get_config("CACHE", "default")
-    ]  # TODO: This will fully clear the cache. Might not be what we want. Can we scope this?
-
-
 def get_roleclass(role_class) -> Type[Role]:
     """
     Get the role class signature
@@ -77,7 +67,7 @@ def string_to_permission(perm):
     # exists in the cache system.
     prefix = get_config("CACHE_PREFIX_KEY", CACHE_KEY_PREFIX)
     key = "{}-permission-{}".format(prefix, perm)
-    perm_obj: Permission = orca_cache().get(key)
+    perm_obj: Optional[Permission] = orca_cache().get(key)
 
     # If not, creates the query to
     # get the Permission instance
@@ -116,6 +106,7 @@ def get_permissions_list(models_list):
     ct_list = ContentType.objects.get_for_models(*models_list)
     ct_ids = [ct.id for cls, ct in ct_list.items()]
 
+    # TODO: This performs multiple database queries
     return list(Permission.objects.filter(content_type_id__in=ct_ids))
 
 
@@ -224,6 +215,23 @@ def check_my_model(role, obj):
             'The model "%s" does not belong to the Role "%s"'
             "." % (model_name, role.get_verbose_name())
         )
+
+
+##############################
+###      CACHE UTILS       ###
+##############################
+
+
+def orca_cache() -> BaseCache:
+    """
+    Proxy method used to get the cache
+    object belonging to orca.
+    """
+    from django.core.cache import caches
+
+    return caches[
+        get_config("CACHE", "default")
+    ]  # TODO: This will fully clear the cache. Might not be what we want. Can we scope this?
 
 
 def generate_cache_key(user, obj, any_object):

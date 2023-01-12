@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import ABC
 from typing import List, Optional, Type, Union
 
 from django.apps import apps
@@ -19,10 +19,7 @@ class Role(ABC):
     This abstract class is the base for all other roles
     """
 
-    @property
-    @abstractmethod
-    def verbose_name(self) -> str:
-        pass
+    verbose_name: str
 
     all_models: bool = False
     models: List[Union[Type[Model], str]]

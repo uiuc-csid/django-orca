@@ -1,3 +1,5 @@
+from typing import Optional
+
 from django.conf import settings
 from django.contrib.auth.mixins import AccessMixin
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
@@ -12,7 +14,7 @@ class ObjectPermissionRequiredMixin(AccessMixin):
     """
 
     login_url = settings.LOGIN_URL
-    permission_required = None
+    permission_required: Optional[str] = None
     return_404 = False
     return_403 = True
 

@@ -1,7 +1,7 @@
 import logging
 from importlib import import_module
 from inspect import getmembers
-from typing import Dict, Type, Union
+from typing import Any, Dict, Type, Union
 
 from django.apps import apps
 from django.utils.module_loading import autodiscover_modules, module_has_submodule
@@ -32,7 +32,7 @@ class RoleRegistry:
     def role_class_list(self):
         return self._registry.values()
 
-    def __contains__(self, item: Union[str, Type[Role]]) -> bool:
+    def __contains__(self, item: Any) -> bool:
         if isinstance(item, str):
             return item in self._registry
         elif issubclass(item, Role):

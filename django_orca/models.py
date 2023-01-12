@@ -1,3 +1,5 @@
+from typing import List
+
 from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -29,6 +31,16 @@ class UserRole(models.Model):
     in the Role class.
     """
 
+    class Meta:
+        verbose_name = "Role Instance"
+        verbose_name_plural = "Role Instances"
+        unique_together = ("user", "role_class", "content_type", "object_id")
+        indexes = [
+            models.Index(fields=["role_class"]),
+            models.Index(fields=["user"]),
+            models.Index(fields=["content_type"]),
+        ]
+
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -50,11 +62,6 @@ class UserRole(models.Model):
     obj = GenericForeignKey()
 
     objects = UserRoleManager()
-
-    class Meta:
-        verbose_name = "Role Instance"
-        verbose_name_plural = "Role Instances"
-        unique_together = ("user", "role_class", "content_type", "object_id")
 
     def natural_key(self):
         return (self.user.id, self.role_class, self.content_type.id, self.object_id)
@@ -94,25 +101,22 @@ class UserRole(models.Model):
 
         all_perms = get_permissions_list(self.role.get_models())
 
-        # Filtering the permissions based
-        # on "allow" or "deny".
-        role_instances = list()
+        role_instances: List[RolePermission] = list()
+
         for perm in all_perms:
-            access = None
             perm_s = permission_to_string(perm)
             if self.role.get_mode() == ALLOW_MODE:
-                # [Allow Mode]
-                # Put the access as "True" only for
-                # the permissions in allow list.
-                access = True if perm_s in self.role.allow else False
+                role_instances.append(
+                    RolePermission(
+                        role=self, permission=perm, access=perm_s in self.role.allow
+                    )
+                )
             else:
-                # [Deny Mode]
-                # Put the access as "False" only for
-                # the permissions in deny list.
-                access = False if perm_s in self.role.deny else True
-            role_instances.append(
-                RolePermission(role=self, permission=perm, access=access)
-            )
+                role_instances.append(
+                    RolePermission(
+                        role=self, permission=perm, access=perm_s not in self.role.deny
+                    )
+                )
 
         RolePermission.objects.bulk_create(role_instances)
 

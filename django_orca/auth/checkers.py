@@ -16,12 +16,10 @@ from ..utils import (
 
 def has_role(user, role_class=None, obj=None):
     """
-    Check if the "user" has any role
-    attached to him.
-    If "role_class" is provided, only
-    this role class will be counted.
-    If "obj" is provided, the search is
-    refined to look only at that object.
+    Check if the "user" has any role attached to them.
+
+    If "role_class" is provided, only instances of the role class will be counted.
+    If "obj" is provided, the search is refined to look only at that object.
     """
     if isinstance(user, AnonymousUser):
         return False
