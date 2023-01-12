@@ -3,12 +3,13 @@ name: Test Project
 on: [push]
 
 env:
-  TEST_REPORT_LOCATION: reports/pytest-report.xml
+  TEST_REPORT_LOCATION: tmp/pytest-report.xml
 
 jobs:
   test:
     name: Test
-      steps:
+    runs-on: ubuntu-latest
+    steps:
       - name: Checkout code
         uses: actions/checkout@v3
       - name: Setup python
