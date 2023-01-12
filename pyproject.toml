@@ -1,8 +1,9 @@
 [tool.poetry]
 name = "django-orca"
 version = "0.0.1"
-description = ""
-authors = ["Your Name <you@example.com>"]
+description = "A role-based access control backend for django"
+license = "BSD-3-Clause"
+authors = ["Josh Asplund <asplund3@illinois.edu>"]
 readme = "README.md"
 packages = [{include = "django_orca"}]
 
@@ -15,6 +16,7 @@ ipython = "*"
 mypy = "*"
 mypy-extensions = "*"
 django-stubs = "^1.13.0"
+django-extensions = "*"
 pytest = "*"
 pytest-cov = "^4.0.0"
 pytest-django = "*"
