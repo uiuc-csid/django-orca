@@ -1,4 +1,5 @@
-from typing import Optional
+from __future__ import annotations
+from collections.abc import Iterable
 
 from django.conf import settings
 from django.contrib.auth.mixins import AccessMixin
@@ -14,12 +15,12 @@ class ObjectPermissionRequiredMixin(AccessMixin):
     """
 
     login_url = settings.LOGIN_URL
-    permission_required: Optional[str] = None
+    permission_required: str | Iterable[str] | None = None
     return_404 = False
     return_403 = True
 
     def get_permission_required(self):
-        if self.permission_required != "":
+        if self.permission_required:
             return self.permission_required
 
         raise ImproperlyConfigured("Provide a 'permission_required' attribute.")
@@ -41,7 +42,7 @@ class ObjectPermissionRequiredMixin(AccessMixin):
         )
 
     def has_permission(self):
-        return self.request.user.has_perm(
+        return self.request.user.has_perms(
             self.get_permission_required(), self.get_permission_object()
         )
 
