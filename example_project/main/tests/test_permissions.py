@@ -1,5 +1,6 @@
 import pytest
 from django.test import Client
+from django.urls import reverse
 
 from ..models import User
 from ..roles import CourseOwner, CourseViewer, DepartmentOwner
@@ -29,20 +30,6 @@ def test_basic_permission_granting(course_factory):
     user.assign_role(CourseOwner, course)
     assert user.has_perm("main.view_course", course)
     assert user.has_perms(["main.view_course", "main.change_course"], course)
-
-
-@pytest.mark.django_db
-def test_views(client: Client, course_factory):
-    course = course_factory()
-    user = User.objects.create(username="testowner")
-    client.force_login(user)
-
-    response = client.get(course.get_absolute_url())
-    assert response.status_code == 403
-
-    user.assign_role(CourseOwner, course)
-    response = client.get(course.get_absolute_url())
-    assert response.status_code == 200
 
 
 @pytest.mark.django_db
@@ -86,3 +73,32 @@ def test_inherited_permissions(department_factory, course_factory):
     # We haven't set permissions globally
     assert not user.has_perm("main.view_course", course3)
     assert not user.has_perm("main.change_course", course3)
+
+
+@pytest.mark.django_db
+def test_role_view(client: Client, course_factory):
+    course = course_factory()
+    user = User.objects.create(username="testowner")
+    client.force_login(user)
+
+    response = client.get(reverse("course-owner-detail", kwargs={"pk": course.pk}))
+    assert response.status_code == 403
+
+    user.assign_role(CourseOwner, course)
+
+    response = client.get(reverse("course-owner-detail", kwargs={"pk": course.pk}))
+    assert response.status_code == 200
+
+
+@pytest.mark.django_db
+def test_perm_view(client: Client, course_factory):
+    course = course_factory()
+    user = User.objects.create(username="testowner")
+    client.force_login(user)
+
+    response = client.get(course.get_absolute_url())
+    assert response.status_code == 403
+
+    user.assign_role(CourseOwner, course)
+    response = client.get(course.get_absolute_url())
+    assert response.status_code == 200
