@@ -1,4 +1,5 @@
 import pytest
+from django.test import Client
 
 from ..models import User
 from ..roles import CourseOwner, CourseViewer, DepartmentOwner
@@ -27,6 +28,21 @@ def test_basic_permission_granting(course_factory):
 
     user.assign_role(CourseOwner, course)
     assert user.has_perm("main.view_course", course)
+    assert user.has_perms(["main.view_course", "main.change_course"], course)
+
+
+@pytest.mark.django_db
+def test_views(client: Client, course_factory):
+    course = course_factory()
+    user = User.objects.create(username="testowner")
+    client.force_login(user)
+
+    response = client.get(course.get_absolute_url())
+    assert response.status_code == 403
+
+    user.assign_role(CourseOwner, course)
+    response = client.get(course.get_absolute_url())
+    assert response.status_code == 200
 
 
 @pytest.mark.django_db

@@ -1,3 +1,10 @@
-# from django.shortcuts import render
+from django.views.generic.detail import DetailView
 
-# Create your views here.
+from django_orca.views import ObjectPermissionRequiredMixin
+
+from .models import Course
+
+
+class CourseDetailView(ObjectPermissionRequiredMixin, DetailView):
+    model = Course
+    permission_required = ["main.view_course", "main.change_course"]
