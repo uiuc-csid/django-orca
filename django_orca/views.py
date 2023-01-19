@@ -26,7 +26,10 @@ class ObjectPermissionRequiredMixin(AccessMixin):
 
     def get_permission_required(self):
         if self.permission_required:
-            return self.permission_required
+            if isinstance(self.permission_required, str):
+                return [self.permission_required]
+            else:
+                return self.permission_required
 
         raise ImproperlyConfigured("Provide a 'permission_required' attribute.")
 
