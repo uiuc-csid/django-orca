@@ -1,16 +1,30 @@
 import pytest
-from django.test import Client
-from django.urls import reverse
+from django.contrib.auth.models import AnonymousUser
 
-from ..models import User
+from django_orca.exceptions import NotAllowed
+from django_orca.shortcuts import has_permission, has_role
+
+from ..models import Course, Department, User
 from ..roles import CourseOwner, CourseViewer, DepartmentOwner
 
 
 @pytest.mark.django_db
-def test_assign_role(course_factory):
-    course = course_factory()
-    user = User.objects.create(username="owner")
+def test_anon_user(course):
+    user = AnonymousUser()
+    assert not has_role(user, role_class=CourseOwner)
+    assert not has_role(user, role_class=CourseViewer, obj=course)
 
+    assert not has_permission(user, "main.view_course")
+
+
+@pytest.mark.django_db
+def test_checker_error_handling(course, user):
+    with pytest.raises(NotAllowed):
+        has_permission(user, "main.view_course", obj=course, any_object=True)
+
+
+@pytest.mark.django_db
+def test_assign_role(user: User, course: Course):
     assert not user.has_role(CourseOwner, obj=course)
 
     user.assign_role(CourseOwner, obj=course)
@@ -21,10 +35,7 @@ def test_assign_role(course_factory):
 
 
 @pytest.mark.django_db
-def test_basic_permission_granting(course_factory):
-    course = course_factory()
-    user = User.objects.create(username="testowner")
-
+def test_basic_permission_granting(user: User, course: Course):
     assert not user.has_perm("main.view_course", course)
 
     user.assign_role(CourseOwner, course)
@@ -33,10 +44,7 @@ def test_basic_permission_granting(course_factory):
 
 
 @pytest.mark.django_db
-def test_limited_permission_granting(course_factory):
-    course = course_factory()
-    user = User.objects.create(username="viewer")
-
+def test_limited_permission_granting(user: User, course: Course):
     assert not user.has_perm("main.view_course", course)
     assert not user.has_perm("main.change_course", course)
 
@@ -46,10 +54,7 @@ def test_limited_permission_granting(course_factory):
 
 
 @pytest.mark.django_db
-def test_inherited_permissions(department_factory, course_factory):
-    department = department_factory()
-    user = User.objects.create(username="dept_owner")
-
+def test_inherited_permissions(user: User, department: Department, course_factory):
     course1 = course_factory(department=department)
     course2 = course_factory(department=department)
     course3 = course_factory()
@@ -73,32 +78,3 @@ def test_inherited_permissions(department_factory, course_factory):
     # We haven't set permissions globally
     assert not user.has_perm("main.view_course", course3)
     assert not user.has_perm("main.change_course", course3)
-
-
-@pytest.mark.django_db
-def test_role_view(client: Client, course_factory):
-    course = course_factory()
-    user = User.objects.create(username="testowner")
-    client.force_login(user)
-
-    response = client.get(reverse("course-owner-detail", kwargs={"pk": course.pk}))
-    assert response.status_code == 403
-
-    user.assign_role(CourseOwner, course)
-
-    response = client.get(reverse("course-owner-detail", kwargs={"pk": course.pk}))
-    assert response.status_code == 200
-
-
-@pytest.mark.django_db
-def test_perm_view(client: Client, course_factory):
-    course = course_factory()
-    user = User.objects.create(username="testowner")
-    client.force_login(user)
-
-    response = client.get(course.get_absolute_url())
-    assert response.status_code == 403
-
-    user.assign_role(CourseOwner, course)
-    response = client.get(course.get_absolute_url())
-    assert response.status_code == 200

@@ -1,0 +1,11 @@
+{% extends "base_page.html" %}
+
+{% block body %}
+{{ object }}
+<br>
+<h2>Courses</h2>
+<ul>
+{% for course in courses %}
+<li><a href="{{course.get_absolute_url}}">{{course}}</a></li>
+{% endfor %}
+{% endblock %}

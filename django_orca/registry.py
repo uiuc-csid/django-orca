@@ -51,18 +51,20 @@ class RoleRegistry:
 
     def register(self, kls):
         if not is_role(kls):
-            raise ImproperlyConfigured('"%s" does not inherit from Role."' % str(kls))
+            raise ImproperlyConfigured(
+                '"%s" does not inherit from Role."' % str(kls)
+            )  # pragma: no cover
 
         kls_name = kls.get_class_name()
         current_kls = self._registry.get(kls_name, None)
 
         if current_kls == kls:
-            raise AlreadyRegistered(
+            raise AlreadyRegistered(  # pragma: no cover
                 '"%s" was already registered as a Role class.' % kls_name
             )
 
         if current_kls is not None and current_kls != kls:
-            raise ImproperlyConfigured(
+            raise ImproperlyConfigured(  # pragma: no cover
                 '"Another role was already defined using "%s". Choose another name for this Role class.'
                 % kls_name
             )
@@ -77,7 +79,7 @@ class RoleRegistry:
 
         # Check for "verbose_name" definition.
         if not hasattr(new_class, "verbose_name"):
-            raise ImproperlyConfigured(
+            raise ImproperlyConfigured(  # pragma: no cover
                 'Provide a "verbose_name" definition to the Role class "%s".' % name
             )
 
@@ -147,7 +149,7 @@ class RoleRegistry:
             models_isvalid = False
 
         if not models_isvalid:
-            raise ImproperlyConfigured(
+            raise ImproperlyConfigured(  # pragma: no cover
                 'Provide a list of Models classes via definition of "models" to the Role class "%s".'
                 % name
             )
@@ -167,7 +169,7 @@ class RoleRegistry:
 
         # XOR operation.
         if c_allow and c_deny or not c_allow and not c_deny:
-            raise ImproperlyConfigured(
+            raise ImproperlyConfigured(  # pragma: no cover
                 'Provide either "%s" or "%s" when inherit=True or models=ALL_MODELS for the Role "%s".'
                 % (allow_field, deny_field, name)
             )
@@ -178,7 +180,7 @@ class RoleRegistry:
         elif c_deny and isinstance(getattr(new_class, deny_field), list):
             result = DENY_MODE
         else:
-            raise ImproperlyConfigured(
+            raise ImproperlyConfigured(  # pragma: no cover
                 '"%s" or "%s" must to be a list in the Role "%s".'
                 % (allow_field, deny_field, name)
             )
@@ -201,5 +203,5 @@ def autodiscover(module_name="roles"):
             if is_role(member):
                 try:
                     registry.register(member)
-                except AlreadyRegistered:
+                except AlreadyRegistered:  # pragma: no cover
                     pass

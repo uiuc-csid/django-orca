@@ -1,0 +1,7 @@
+{% extends "base_page.html" %}
+
+{% block body %}
+{{ object }}
+<br>
+Department: <a href="{{department.get_absolute_url}}">{{object.department}}</a>
+{% endblock %}

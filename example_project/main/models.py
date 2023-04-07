@@ -13,6 +13,9 @@ class User(UserRoleMixin, AbstractUser):
 class Department(models.Model):
     name = models.CharField(max_length=256)
 
+    def get_absolute_url(self):
+        return reverse("department-detail", kwargs={"pk": self.pk})
+
 
 class Course(models.Model):
     class RoleOptions:
