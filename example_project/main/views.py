@@ -32,3 +32,15 @@ class CourseDetailView(ObjectPermissionRequiredMixin, DetailView):
 class CourseOwnerDetailView(ObjectRoleRequiredMixin, DetailView):
     model = Course
     role_required = CourseOwner
+
+
+class CourseDetailView404(ObjectPermissionRequiredMixin, DetailView):
+    model = Course
+    return_404 = True
+    permission_required = ["main.view_course", "main.change_course"]
+
+
+class CourseOwnerDetailView404(ObjectRoleRequiredMixin, DetailView):
+    model = Course
+    return_404 = True
+    role_required = CourseOwner

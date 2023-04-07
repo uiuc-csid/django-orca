@@ -7,12 +7,13 @@ from django.conf import settings
 from django.contrib.auth.mixins import AccessMixin
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
 from django.http import Http404
+from django.views import View
 
 from django_orca.roles import Role
 from django_orca.shortcuts import has_role
 
 
-class ObjectPermissionRequiredMixin(AccessMixin):
+class ObjectPermissionRequiredMixin(AccessMixin, View):
     """
     PermissionMixin
 
@@ -22,7 +23,6 @@ class ObjectPermissionRequiredMixin(AccessMixin):
     login_url = settings.LOGIN_URL
     permission_required: str | Iterable[str]
     return_404 = False
-    return_403 = True
 
     def get_permission_required(self):
         if self.permission_required:
@@ -64,11 +64,10 @@ class ObjectPermissionRequiredMixin(AccessMixin):
             return super().dispatch(request, *args, **kwargs)
 
 
-class ObjectRoleRequiredMixin(AccessMixin):
+class ObjectRoleRequiredMixin(AccessMixin, View):
     login_url = settings.LOGIN_URL
     role_required: Type[Role]
     return_404 = False
-    return_403 = True
 
     def get_role_required(self):
         if self.role_required:

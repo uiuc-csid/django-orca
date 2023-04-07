@@ -2,15 +2,12 @@ import pytest
 from django.test import Client
 from django.urls import reverse
 
-from ..models import User
+from ..models import Course, Department, User
 from ..roles import CourseOwner, CourseViewer, DepartmentOwner
 
 
 @pytest.mark.django_db
-def test_assign_role(course_factory):
-    course = course_factory()
-    user = User.objects.create(username="owner")
-
+def test_assign_role(user: User, course: Course):
     assert not user.has_role(CourseOwner, obj=course)
 
     user.assign_role(CourseOwner, obj=course)
@@ -21,10 +18,7 @@ def test_assign_role(course_factory):
 
 
 @pytest.mark.django_db
-def test_basic_permission_granting(course_factory):
-    course = course_factory()
-    user = User.objects.create(username="testowner")
-
+def test_basic_permission_granting(user: User, course: Course):
     assert not user.has_perm("main.view_course", course)
 
     user.assign_role(CourseOwner, course)
@@ -33,10 +27,7 @@ def test_basic_permission_granting(course_factory):
 
 
 @pytest.mark.django_db
-def test_limited_permission_granting(course_factory):
-    course = course_factory()
-    user = User.objects.create(username="viewer")
-
+def test_limited_permission_granting(user: User, course: Course):
     assert not user.has_perm("main.view_course", course)
     assert not user.has_perm("main.change_course", course)
 
@@ -46,10 +37,7 @@ def test_limited_permission_granting(course_factory):
 
 
 @pytest.mark.django_db
-def test_inherited_permissions(department_factory, course_factory):
-    department = department_factory()
-    user = User.objects.create(username="dept_owner")
-
+def test_inherited_permissions(user: User, department: Department, course_factory):
     course1 = course_factory(department=department)
     course2 = course_factory(department=department)
     course3 = course_factory()
@@ -76,43 +64,67 @@ def test_inherited_permissions(department_factory, course_factory):
 
 
 @pytest.mark.django_db
-def test_role_view(client: Client, course_factory):
-    course = course_factory()
-    user = User.objects.create(username="testowner")
+def test_role_view(client: Client, user: User, course: Course):
     client.force_login(user)
+    url = reverse("course-owner-detail", kwargs={"pk": course.pk})
 
-    response = client.get(reverse("course-owner-detail", kwargs={"pk": course.pk}))
+    response = client.get(url)
     assert response.status_code == 403
 
     user.assign_role(CourseOwner, course)
-
-    response = client.get(reverse("course-owner-detail", kwargs={"pk": course.pk}))
+    response = client.get(url)
     assert response.status_code == 200
 
 
 @pytest.mark.django_db
-def test_perm_view(client: Client, course_factory):
-    course = course_factory()
-    user = User.objects.create(username="testowner")
+def test_role_view_404(client: Client, user: User, course: Course):
     client.force_login(user)
+    url = reverse("course-owner-detail-404", kwargs={"pk": course.pk})
 
-    response = client.get(course.get_absolute_url())
-    assert response.status_code == 403
+    response = client.get(url)
+    assert response.status_code == 404
 
     user.assign_role(CourseOwner, course)
-    response = client.get(course.get_absolute_url())
+    response = client.get(url)
     assert response.status_code == 200
 
 
 @pytest.mark.django_db
-def test_perm_view_department(client: Client, department_factory):
-    department = department_factory()
+def test_perm_view(client: Client, user: User, course: Course):
+    client.force_login(user)
+
+    url = course.get_absolute_url()
+    response = client.get(url)
+    assert response.status_code == 403
+
+    user.assign_role(CourseOwner, course)
+    response = client.get(url)
+    assert response.status_code == 200
+
+
+@pytest.mark.django_db
+def test_perm_view_404(client: Client, user: User, course: Course):
+    client.force_login(user)
+
+    url = reverse("course-detail-404", kwargs={"pk": course.pk})
+    response = client.get(url)
+    assert response.status_code == 404
+
+    user.assign_role(CourseOwner, course)
+    response = client.get(url)
+    assert response.status_code == 200
+
+
+@pytest.mark.django_db
+def test_perm_view_department(client: Client, user: User, department_factory):
+    department: Department = department_factory()
     user = User.objects.create(username="testowner")
     client.force_login(user)
 
-    response = client.get(department.get_absolute_url())
+    url = department.get_absolute_url()
+    response = client.get(url)
     assert response.status_code == 403
 
     user.assign_role(DepartmentOwner, department)
-    response = client.get(department.get_absolute_url())
+    response = client.get(url)
     assert response.status_code == 200
