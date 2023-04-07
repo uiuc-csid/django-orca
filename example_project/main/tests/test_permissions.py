@@ -102,3 +102,17 @@ def test_perm_view(client: Client, course_factory):
     user.assign_role(CourseOwner, course)
     response = client.get(course.get_absolute_url())
     assert response.status_code == 200
+
+
+@pytest.mark.django_db
+def test_perm_view_department(client: Client, department_factory):
+    department = department_factory()
+    user = User.objects.create(username="testowner")
+    client.force_login(user)
+
+    response = client.get(department.get_absolute_url())
+    assert response.status_code == 403
+
+    user.assign_role(DepartmentOwner, department)
+    response = client.get(department.get_absolute_url())
+    assert response.status_code == 200

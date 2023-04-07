@@ -1,0 +1,21 @@
+{% extends "base_page.html" %}
+
+{% block body %}
+<h1>Example project</h1>
+
+<h2>Courses</h2>
+<ul>
+{% for course in courses %}
+<li><a href="{{course.get_absolute_url}}">{{course}}</a></li>
+{% endfor %}
+</ul>
+
+<h2>Departments</h2>
+<ul>
+{% for department in departments %}
+<li><a href="{{department.get_absolute_url}}">{{department}}</a></li>
+{% endfor %}
+</ul>
+
+
+{% endblock %}

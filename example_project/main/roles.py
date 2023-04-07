@@ -5,7 +5,7 @@ class DepartmentOwner(Role):
     verbose_name = "Department Owner"
     models = ["main.Department"]
 
-    allow = []
+    allow = ["main.view_department"]
 
     inherit = True
     inherit_allow = [
