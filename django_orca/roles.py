@@ -22,7 +22,7 @@ class Role(ABC):
     verbose_name: str
 
     all_models: bool = False
-    models: List[Union[Type[Model], str]]
+    models: Union[List[Union[Type[Model], str]], int]
 
     allow: Optional[List[str]]
     deny: Optional[List[str]]

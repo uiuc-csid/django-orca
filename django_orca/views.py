@@ -31,7 +31,9 @@ class ObjectPermissionRequiredMixin(AccessMixin, View):
             else:
                 return self.permission_required
 
-        raise ImproperlyConfigured("Provide a 'permission_required' attribute.")
+        raise ImproperlyConfigured(
+            "Provide a 'permission_required' attribute."
+        )  # pragma: no cover
 
     def get_permission_object(self):
         if hasattr(self, "permission_object"):
@@ -44,7 +46,7 @@ class ObjectPermissionRequiredMixin(AccessMixin, View):
         elif hasattr(self, "get_object"):
             return getattr(self, "get_object")()
 
-        raise ImproperlyConfigured(
+        raise ImproperlyConfigured(  # pragma: no cover
             "Provide a 'permission_object' attribute or implement "
             "a 'get_permission_object' method."
         )
@@ -73,7 +75,9 @@ class ObjectRoleRequiredMixin(AccessMixin, View):
         if self.role_required:
             return self.role_required
 
-        raise ImproperlyConfigured("Provide a 'role_required' attribute.")
+        raise ImproperlyConfigured(
+            "Provide a 'role_required' attribute."
+        )  # pragma: no cover
 
     def get_permission_object(self):
         if hasattr(self, "permission_object"):
@@ -86,14 +90,14 @@ class ObjectRoleRequiredMixin(AccessMixin, View):
         elif hasattr(self, "get_object"):
             return getattr(self, "get_object")()
 
-        raise ImproperlyConfigured(
+        raise ImproperlyConfigured(  # pragma: no cover
             "Provide a 'permission_object' attribute or implement "
             "a 'get_permission_object' method."
         )
 
     def has_permission(self):
         return has_role(
-            self.request.user, self.role_required, self.get_permission_object()
+            self.request.user, self.get_role_required(), self.get_permission_object()
         )
 
     def dispatch(self, request, *args, **kwargs):

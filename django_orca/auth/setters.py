@@ -1,15 +1,9 @@
 from django.contrib.contenttypes.models import ContentType
 
-from ..exceptions import InvalidPermissionAssignment, InvalidRoleAssignment
-from ..models import RolePermission, UserRole
+from ..exceptions import InvalidRoleAssignment
+from ..models import UserRole
 from ..roles import ALL_MODELS
-from ..utils import (
-    check_my_model,
-    delete_from_cache,
-    get_roleclass,
-    is_unique_together,
-    string_to_permission,
-)
+from ..utils import check_my_model, delete_from_cache, get_roleclass, is_unique_together
 from .checkers import has_role
 from .getters import get_user_roles_strings, get_users
 
@@ -83,38 +77,6 @@ def assign_roles(users_list, role_class, obj=None):
         delete_from_cache(user, obj)
 
 
-def assign_permission(user, role_class, permission, access, obj=None):
-    """
-    Assign a specific permission value
-    to a given UserRole instance.
-    The values used in this method overrides
-    any configuration of "allow/deny" or
-    "inherit_allow/inherit_deny".
-    """
-    role = get_roleclass(role_class)
-    perm = string_to_permission(permission)
-    query = UserRole.objects.filter(user=user, role_class=role.get_class_name())
-    if obj:
-        ct_obj = ContentType.objects.get_for_model(obj)
-        query = query.filter(content_type=ct_obj.id, object_id=obj.id)
-
-    if not query:
-        raise InvalidPermissionAssignment("No Role instance was affected.")
-
-    for role_obj in query:
-        (
-            perm_obj,
-            created,
-        ) = RolePermission.objects.get_or_create(  # pylint: disable=W0612
-            role=role_obj, permission=perm
-        )
-        perm_obj.access = bool(access)
-        perm_obj.save()
-
-        # Cleaning the cache system.
-        delete_from_cache(user, role_obj.obj)
-
-
 def remove_role(user, role_class=None, obj=None):
     """
     Proxy method to be used for one
@@ -154,38 +116,3 @@ def remove_roles(users_list, role_class=None, obj=None):
 
     # Cleaning the database.
     query.delete()
-
-
-def remove_all(role_class=None, obj=None):
-    """
-    Remove all roles of the project.
-    If "role_class" is provided,
-    only the roles of "role_class"
-    will be affected.
-    If "obj" is provided, only
-    users for that object will
-    lose the role.
-    """
-    query = UserRole.objects.all()
-    role = None
-
-    if role_class:
-        # Filtering by role class.
-        role = get_roleclass(role_class)
-        query = UserRole.objects.filter(role_class=role.get_class_name())
-
-    if obj:
-        # Filtering by object.
-        ct_obj = ContentType.objects.get_for_model(obj)
-        query = query.filter(content_type=ct_obj.id, object_id=obj.id)
-
-    # Check if object belongs
-    # to the role class.
-    check_my_model(role, obj)
-
-    # Cleaning the cache system.
-    for role_obj in query:
-        delete_from_cache(role_obj.user, role_obj.obj)
-
-        # Cleaning the database.
-        role_obj.delete()

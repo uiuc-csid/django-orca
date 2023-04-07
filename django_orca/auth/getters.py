@@ -1,59 +1,21 @@
-from typing import Type, TypeVar
+from typing import Any, Iterable, List, Optional, Type, TypeVar
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AbstractBaseUser
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
-from ..exceptions import NotAllowed
+from django_orca.roles import Role
+
 from ..models import UserRole
 from ..utils import check_my_model, get_roleclass
 
-
-def get_user(role_class=None, obj=None):
-    """
-    Get the User instance attached to the object.
-    Only one UserRole must exists and this relation
-    must be unique=True.
-    Returns None if there is no user attached
-    to the object.
-    """
-    query = UserRole.objects.select_related("user").all()
-    role = None
-
-    if role_class:
-        # All users who have "role_class" attached to any object.
-        role = get_roleclass(role_class)
-        query = query.filter(role_class=role.get_class_name())
-
-    if obj:
-        # All users who have any role attached to the object.
-        ct_obj = ContentType.objects.get_for_model(obj)
-        query = query.filter(content_type=ct_obj.id, object_id=obj.id)
-
-    # Check if object belongs
-    # to the role class.
-    check_my_model(role, obj)
-
-    # Looking for a role class using unique=True
-    selected = list()
-    for ur_obj in query:
-        role = get_roleclass(ur_obj.role_class)
-        if role.unique is True:
-            selected.append(ur_obj.user)
-
-    users_set = set(selected)
-    if len(users_set) > 1:
-        raise NotAllowed(
-            "Multiple unique roles was found using "
-            "the function get_user.  Use get_users "
-            "instead."
-        )
-    if len(users_set) == 1:
-        return selected[0]
-    return None
+RoleQ = Optional[Type[Role]]
 
 
-def get_users(role_class=None, obj=None):
+def get_users(
+    role_class: RoleQ = None, obj: Optional[models.Model] = None
+) -> models.QuerySet[AbstractBaseUser]:
     """
     If "role_class" and "obj" is provided,
     returns a QuerySet of users who has
@@ -87,7 +49,7 @@ def get_users(role_class=None, obj=None):
     return get_user_model().objects.filter(**kwargs).distinct()
 
 
-def get_objects(user, role_class=None, model=None):
+def get_objects(user, role_class: RoleQ = None, model=None) -> List[Any]:
     """
     Return the list of objects attached
     to a given user.
@@ -121,7 +83,9 @@ def get_objects(user, role_class=None, model=None):
 T = TypeVar("T", bound=models.Model)
 
 
-def get_qs_for_user(user, model: Type[T], role_class=None) -> models.QuerySet[T]:
+def get_qs_for_user(
+    user, model: Type[T], role_class: RoleQ = None
+) -> models.QuerySet[T]:
     # TODO: Include permission inheritance
     ct_obj = ContentType.objects.get_for_model(model)
     role_query = UserRole.objects.filter(user=user, content_type=ct_obj.id)
@@ -134,7 +98,9 @@ def get_qs_for_user(user, model: Type[T], role_class=None) -> models.QuerySet[T]
     return qs
 
 
-def get_userroles(user, obj=None):
+def get_userroles(
+    user, obj: Optional[models.Model] = None
+) -> models.QuerySet[UserRole]:
     """
     Return a QuerySet of UserRole objects associated to "user".
     If "obj" is provided, the QuerySet is filtered by "obj" as well.
@@ -147,18 +113,7 @@ def get_userroles(user, obj=None):
     return query
 
 
-def get_user_role_string(user, obj=None):
-    """
-    Proxy method to be used when you sure that
-    will have only one role class attached.
-    """
-    try:
-        return get_user_roles_strings(user, obj)[0]
-    except IndexError:
-        return None
-
-
-def get_user_roles_strings(user, obj=None):
+def get_user_roles_strings(user, obj: Optional[models.Model] = None):
     """
     Return a list of role classes associated to "user".
     If "obj" is provided, the list is filtered by "obj" as well.
@@ -172,7 +127,7 @@ def get_user_roles_strings(user, obj=None):
     return [get_roleclass(ur_obj.role_class) for ur_obj in query]
 
 
-def get_permissions_from_roles(roles, clean=False):
+def get_permissions_from_roles(roles: Iterable[UserRole], clean=False) -> List:
     """
     roles: list or QuerySet of UserRole objects
     For given role(s), return a list of all allowed permissions. If clean=True,

@@ -1,4 +1,4 @@
-from django_orca.roles import Role
+from django_orca.roles import ALL_MODELS, Role
 
 
 class DepartmentOwner(Role):
@@ -29,4 +29,23 @@ class CourseViewer(Role):
     models = ["main.Course"]
     allow = [
         "main.view_course",
+    ]
+
+
+class Superuser(Role):
+    verbose_name = "Course Superuser"
+    models = ALL_MODELS
+    all_models = True
+    allow = [
+        "main.view_course",
+        "main.change_course",
+        "main.delete_course",
+        "main.view_department" "main.change_department" "main.delete_department",
+    ]
+
+    inherit_allow = [
+        "main.view_course",
+        "main.change_course",
+        "main.delete_course",
+        "main.view_department" "main.change_department" "main.delete_department",
     ]
