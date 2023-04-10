@@ -47,8 +47,33 @@ def test_get_objects(user: User, department: Department, course_factory):
     assert len(user.get_objects(role_class=CourseViewer)) == 2
 
     user.assign_role(DepartmentOwner, department)
+    assert len(user.get_objects()) == 4
     assert len(user.get_objects(model=Course)) == 3
     assert len(user.get_objects(model=Department)) == 1
+
+
+@pytest.mark.django_db
+def test_get_objects_queries(
+    user: User, department: Department, course_factory, django_assert_num_queries
+):
+    course1: Course = course_factory()
+    course2: Course = course_factory()
+    course3: Course = course_factory()
+
+    user.assign_role(CourseOwner, course1)
+    user.assign_role(CourseOwner, course2)
+    user.assign_role(CourseViewer, course3)
+    user.assign_role(DepartmentOwner, department)
+
+    with django_assert_num_queries(1):
+        user.get_objects(model=Course)
+
+    with django_assert_num_queries(1):
+        user.get_objects(model=Department)
+
+    with django_assert_num_queries(3):
+        # Should be equal to the number of model classes returned + 1
+        user.get_objects()
 
 
 @pytest.mark.django_db

@@ -1,4 +1,4 @@
-from typing import Iterable, Optional, Type
+from typing import List, Optional, Type
 
 from django.contrib.auth.models import AbstractBaseUser
 from django.contrib.contenttypes.models import ContentType
@@ -15,14 +15,12 @@ from .getters import get_user_roles_strings, get_userroles, get_users
 RoleQ = Optional[Type[Role]]
 
 
-def assign_role(user: AbstractBaseUser, role_class: Type[Role], obj=None):
+def assign_role(user, role_class: Type[Role], obj=None):
     if not has_role(user, role_class=role_class, obj=obj):
         assign_roles([user], role_class, obj)
 
 
-def assign_roles(
-    users_list: Iterable[AbstractBaseUser], role_class: Type[Role], obj=None
-):
+def assign_roles(users_list: List[AbstractBaseUser], role_class: Type[Role], obj=None):
     # TODO: There should be a flag to ignore assigning a role twice
     users_set = set(users_list)
     role = get_roleclass(role_class)

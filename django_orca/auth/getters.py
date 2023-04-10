@@ -1,3 +1,4 @@
+from itertools import groupby
 from typing import Any, Iterable, List, Optional, Type, TypeVar, Union
 
 from django.contrib.auth import get_user_model
@@ -54,11 +55,17 @@ def get_objects(user, role_class: RoleQ = None, model=None) -> List[Any]:
     if model:
         return list(get_qs_for_user(user, model=model, role_class=role_class))
     else:
-        # TODO: This seems to be an n+1 query
-        query = get_userroles(user, role_class=role_class, model_class=model)
-        query.select_related("obj")
+        query = get_userroles(user, role_class=role_class, model_class=model).values(
+            "content_type", "object_id"
+        )
 
-        return list(set(ur_obj.obj for ur_obj in query))
+        objs: List[models.Model] = []
+        for content_type_id, group in groupby(query, lambda obj: obj["content_type"]):
+            content_type = ContentType.objects.get_for_id(content_type_id)
+            ids = [obj["object_id"] for obj in group]
+            objs.extend(content_type.model_class().objects.filter(id__in=ids))
+
+        return objs
 
 
 def get_qs_for_user(
