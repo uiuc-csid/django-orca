@@ -1,20 +1,23 @@
+from typing import Optional, Type
+
 from django.contrib.auth.models import AnonymousUser
-from django.contrib.contenttypes.models import ContentType
+
+from django_orca.auth.getters import get_userroles
+from django_orca.roles import Role
 
 from ..exceptions import NotAllowed
-from ..models import UserRole
 from ..utils import (
-    check_my_model,
     get_config,
     get_from_cache,
     get_parents,
-    get_roleclass,
     inherit_check,
     string_to_permission,
 )
 
+RoleQ = Optional[Type[Role]]
 
-def has_role(user, role_class=None, obj=None):
+
+def has_role(user, role_class: RoleQ = None, obj=None):
     """
     Check if the "user" has any role attached to them.
 
@@ -23,25 +26,8 @@ def has_role(user, role_class=None, obj=None):
     """
     if isinstance(user, AnonymousUser):
         return False
-
-    query = UserRole.objects.filter(user=user)
-    role = None
-
-    if role_class:
-        # Filtering by role class.
-        role = get_roleclass(role_class)
-        query = query.filter(role_class=role.get_class_name(), user=user)
-
-    if obj:
-        # Filtering by object.
-        ct_obj = ContentType.objects.get_for_model(obj)
-        query = query.filter(content_type=ct_obj.id, object_id=obj.id)
-
-    # Check if object belongs
-    # to the role class.
-    check_my_model(role, obj)
-
-    return query.count() > 0
+    else:
+        return get_userroles(user, role_class=role_class, obj=obj).exists()
 
 
 def has_permission(user, permission, obj=None, any_object=False, persistent=None):

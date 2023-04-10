@@ -26,6 +26,8 @@ def test_get_users(user_factory, course_factory):
     assert len(get_users(CourseViewer, course2)) == 1
     assert len(get_users(CourseViewer, course3)) == 0
 
+    assert len(get_users(obj=course1)) == 2
+
 
 @pytest.mark.django_db
 def test_get_objects(user: User, department: Department, course_factory):

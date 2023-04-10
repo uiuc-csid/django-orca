@@ -83,11 +83,10 @@ format = "grouped"
 [tool.flakeheaven.plugins]
 pycodestyle = ["+*", "-E501", "-W503", "-E266"]
 pyflakes = ["+*", "-F403", "-F405"]
-flake8-commas = ["+*"]
-flake8-quotes = ["+*"]
 pylint = ["+F*", "+E*", "-E0611", "-E1101", "-E0401", "-E1102", "-E1123"]
 
 [tool.coverage.run]
+branch = true
 source = [
     "django_orca"
 ]
