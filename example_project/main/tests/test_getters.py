@@ -47,7 +47,7 @@ def test_get_objects(user: User, department: Department, course_factory):
     assert len(user.get_objects(role_class=CourseViewer)) == 2
 
     user.assign_role(DepartmentOwner, department)
-    assert len(user.get_objects(model=Course)) == 4
+    assert len(user.get_objects(model=Course)) == 3
     assert len(user.get_objects(model=Department)) == 1
 
 

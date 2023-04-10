@@ -50,12 +50,15 @@ def get_objects(user, role_class: RoleQ = None, model=None) -> List[Any]:
     Return the list of objects attached to a given user.
     If "role_class" is provided, only the objects which as registered in that role class will be returned.
     If "model" is provided, only the objects of that model will be returned.
-    TODO: This seems to be an n+1 query
     """
-    query = get_userroles(user, role_class=role_class, model_class=model)
-    query.select_related("obj")
+    if model:
+        return list(get_qs_for_user(user, model=model, role_class=role_class))
+    else:
+        # TODO: This seems to be an n+1 query
+        query = get_userroles(user, role_class=role_class, model_class=model)
+        query.select_related("obj")
 
-    return [ur_obj.obj for ur_obj in query]
+        return list(set(ur_obj.obj for ur_obj in query))
 
 
 def get_qs_for_user(
