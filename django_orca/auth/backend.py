@@ -1,3 +1,5 @@
+from typing import Set
+
 from django.contrib.auth.backends import BaseBackend
 from django.contrib.contenttypes.models import ContentType
 
@@ -7,7 +9,7 @@ from .checkers import has_permission
 
 
 class OrcaBackend(BaseBackend):
-    def get_user_permissions(self, user_obj, obj=None):
+    def get_user_permissions(self, user_obj, obj=None) -> Set:
         query = RolePermission.objects.filter(role__user=user_obj)
         if obj:
             ct_obj = ContentType.objects.get_for_model(obj)
@@ -15,9 +17,6 @@ class OrcaBackend(BaseBackend):
 
         allows = set([rp.permission for rp in query if rp.access])
         return allows.difference([rp.permission for rp in query if not rp.access])
-
-    # def get_group_permissions(self, user_obj, obj=None):
-    #     return set()
 
     def get_all_permissions(self, user_obj, obj=None):
         return {

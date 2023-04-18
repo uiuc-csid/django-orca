@@ -29,10 +29,8 @@ def is_role(role_class):
 
 def get_config(key, default):
     """
-    Get the dictionary "ORCA_SETTINGS"
-    from the settings module.
-    Return "default" if "key" is not present in
-    the dictionary.
+    Get the dictionary "ORCA_SETTINGS" from the settings module.
+    Return "default" if "key" is not present in the dictionary.
     """
     from django.conf import settings
 
@@ -45,8 +43,7 @@ def get_config(key, default):
 
 def get_roleclass(role_class) -> Type[Role]:
     """
-    Get the role class signature
-    by string or by itself.
+    Get the role class signature by string or by itself.
     """
     from .registry import registry
 
@@ -58,8 +55,7 @@ def get_roleclass(role_class) -> Type[Role]:
 
 def string_to_permission(perm):
     """
-    Transforms a string representation
-    into a Permission instance.
+    Transforms a string representation into a Permission instance.
     """
     from django.contrib.auth.models import Permission
 
@@ -87,8 +83,7 @@ def string_to_permission(perm):
 
 def permission_to_string(perm):
     """
-    Transforms a Permission instance
-    into a string representation.
+    Transforms a Permission instance into a string representation.
     """
     app_label = perm.content_type.app_label
     codename = perm.codename
@@ -97,8 +92,7 @@ def permission_to_string(perm):
 
 def get_permissions_list(models_list):
     """
-    Given a list of Model instances or a Model
-    classes, return all Permissions related to it.
+    Given a list of Model instances or a Model classes, return all Permissions related to it.
     """
     from django.contrib.auth.models import Permission
     from django.contrib.contenttypes.models import ContentType
@@ -112,8 +106,7 @@ def get_permissions_list(models_list):
 
 def get_parents(model):
     """
-    Return the list of instances refered
-    as "parents" of a given model instance.
+    Return the list of instances refered as "parents" of a given model instance.
     """
     result = list()
     options = getattr(model, "RoleOptions", None)
@@ -136,9 +129,7 @@ def get_parents(model):
 
 def is_unique_together(model):
     """
-    Return True if the model does not
-    accept multiple roles attached to
-    it using the user instance.
+    Return True if the model does not accept multiple roles attached to it using the user instance.
     """
     options = getattr(model, "RoleOptions", None)
     if options:
@@ -155,8 +146,7 @@ def is_unique_together(model):
 
 def inherit_check(role_s, permission):
     """
-    Check if the role class has the following
-    permission in inherit mode.
+    Check if the role class has the following permission in inherit mode.
     """
     from .roles import ALLOW_MODE
 
@@ -170,9 +160,7 @@ def inherit_check(role_s, permission):
 
 def cleanup_handler(sender, instance, **kwargs):  # pylint: disable=unused-argument
     """
-    This function is attached to the post_delete
-    signal of all models of Django. Used to remove
-    useless role instances and permissions.
+    This function is attached to the post_delete signal of all models of Django. Used to remove useless role instances and permissions.
     """
     from django.contrib.contenttypes.models import ContentType
 
@@ -189,8 +177,7 @@ def cleanup_handler(sender, instance, **kwargs):  # pylint: disable=unused-argum
 
 def register_cleanup():
     """
-    Register the function "cleanup_handler"
-    to all models in the project.
+    Register the function "cleanup_handler" to all models in the project.
     """
     from django.apps import apps
     from django.db.models.signals import post_delete
@@ -205,9 +192,7 @@ def register_cleanup():
 
 def check_my_model(role, obj):
     """
-    if both are provided, check if obj
-    (instance or model class) belongs
-    to the role class.
+    if both are provided, check if obj (instance or model class) belongs to the role class.
     """
     if role and obj and not role.is_my_model(obj):
         model_name = obj._meta.model  # pylint: disable=protected-access
@@ -224,8 +209,7 @@ def check_my_model(role, obj):
 
 def orca_cache() -> BaseCache:
     """
-    Proxy method used to get the cache
-    object belonging to orca.
+    Proxy method used to get the cache object belonging to orca.
     """
     from django.core.cache import caches
 
@@ -236,9 +220,7 @@ def orca_cache() -> BaseCache:
 
 def generate_cache_key(user, obj, any_object):
     """
-    Generate a md5 digest based on the
-    string representation of the user
-    and the object passed via arguments.
+    Generate a md5 digest based on the string representation of the user and the object passed via arguments.
     """
     from hashlib import md5
 
@@ -256,9 +238,7 @@ def generate_cache_key(user, obj, any_object):
 
 def delete_from_cache(user, obj):
     """
-    Delete all permissions data from
-    the cache about the user and the
-    object passed via arguments.
+    Delete all permissions data from the cache about the user and the object passed via arguments.
     """
     key = generate_cache_key(user, obj, any_object=False)
     orca_cache().delete(key)
@@ -269,10 +249,7 @@ def delete_from_cache(user, obj):
 
 def get_from_cache(user, obj, any_object):
     """
-    Get all permissions data about
-    the user and the object passed
-    via arguments e store it in
-    the Django cache system.
+    Get all permissions data about the user and the object passed via arguments e store it in the Django cache system.
     """
     from django.contrib.contenttypes.models import ContentType
 

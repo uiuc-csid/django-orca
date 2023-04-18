@@ -15,20 +15,30 @@ def test_user_permissions(user_factory, course: Course, department: Department):
     user1.assign_role(CourseViewer, course)
     perms = user1.get_user_permissions()
     assert len(perms) == 1
+    assert user1.get_all_permissions() == user1.get_user_permissions()
 
     perms = user1.get_user_permissions(obj=course)
     assert len(perms) == 1
+    assert user1.get_all_permissions(obj=course) == user1.get_user_permissions(
+        obj=course
+    )
+
     perms = user1.get_user_permissions(obj=department)
     assert len(perms) == 0
+    assert user1.get_all_permissions(obj=department) == user1.get_user_permissions(
+        obj=department
+    )
 
     # Note: permissions are cached so they should be cleared between checks
     user2: User = user_factory()
     perms = user2.get_user_permissions()
     assert len(perms) == 0
+    assert user2.get_all_permissions() == user2.get_user_permissions()
 
     user2.assign_role(CourseOwner, course)
     perms = user2.get_user_permissions()
     assert len(perms) == 3
+    assert user2.get_all_permissions() == user2.get_user_permissions()
 
 
 @pytest.mark.django_db
