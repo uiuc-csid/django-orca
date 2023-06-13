@@ -13,7 +13,7 @@ from django_orca.roles import Role
 from django_orca.shortcuts import has_role
 
 
-class ObjectPermissionRequiredMixin(AccessMixin, View):
+class ObjectPermissionRequiredMixin(AccessMixin):
     """
     PermissionMixin
 
@@ -66,7 +66,7 @@ class ObjectPermissionRequiredMixin(AccessMixin, View):
             return super().dispatch(request, *args, **kwargs)
 
 
-class ObjectRoleRequiredMixin(AccessMixin, View):
+class ObjectRoleRequiredMixin(AccessMixin):
     login_url = settings.LOGIN_URL
     role_required: Type[Role]
     return_404 = False
