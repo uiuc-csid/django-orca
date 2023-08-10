@@ -4,21 +4,27 @@
 	"dockerComposeFile": "docker-compose.yaml",
 	"service": "app",
 	"workspaceFolder": "/workspace/app",
-	"postCreateCommand": "curl -sSL https://install.python-poetry.org | python3 - && poetry install --no-interaction && poetry run pre-commit install",
+	"onCreateCommand": {
+        "General permissions": "sudo chmod -R a+rw /ipython && sudo chmod -R a+rw /var/cache/pypoetry && find ~ -mindepth 1 -maxdepth 1 -type d -not -path ~/.vscode-server -o -print0 |xargs -0 sudo chown -R vscode && sudo chown -R vscode /workspace/app"
+    },
+    "updateContentCommand": {
+        "Install poetry and packages": "curl -sSL https://install.python-poetry.org | python3 - && poetry install --no-interaction && poetry run pre-commit install"
+    },
     "remoteUser": "vscode",
 
 	"customizations": {
 		"vscode": {
 			"settings": {
 				"terminal.integrated.defaultProfile.linux": "zsh",
-				"python.linting.enabled": true,
-				"python.linting.mypyEnabled": true,
-				"python.formatting.provider": "black",
+				"mypy-type-checker.importStrategy": "fromEnvironment",
 				"python.testing.unittestEnabled": false,
     			"python.testing.pytestEnabled": true,
 				"python.testing.pytestArgs": [
 					"."
 				],
+				"[python]": {
+					"editor.defaultFormatter": "ms-python.black-formatter"
+				},
 				"files.watcherExclude": {
 					"**/.git/objects/**": true,
 					"**/.git/subtree-cache/**": true,
@@ -51,6 +57,8 @@
 			"extensions": [
 				"ms-python.python",
 				"ms-python.vscode-pylance",
+				"ms-python.mypy-type-checker",
+				"ms-python.black-formatter",
 				"piotrpalarz.vscode-gitignore-generator",
 				"mikestead.dotenv",
 				"batisteo.vscode-django",
