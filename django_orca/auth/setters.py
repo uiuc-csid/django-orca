@@ -7,7 +7,6 @@ from django_orca.roles import Role
 
 from ..exceptions import InvalidRoleAssignment
 from ..models import UserRole
-from ..roles import ALL_MODELS
 from ..utils import check_my_model, delete_from_cache, get_roleclass, is_unique_together
 from .checkers import has_role
 from .getters import get_user_roles_strings, get_userroles, get_users
@@ -30,13 +29,13 @@ def assign_roles(users_list: List[AbstractBaseUser], role_class: Type[Role], obj
     check_my_model(role, obj)
 
     # If no object is provided but the role needs specific models.
-    if not obj and role.models != ALL_MODELS:
+    if not obj and not role.all_models:
         raise InvalidRoleAssignment(
             'The role "%s" must be assigned with a object.' % name
         )
 
     # If a object is provided but the role does not needs a object.
-    if obj and role.models == ALL_MODELS:
+    if obj and role.all_models:
         raise InvalidRoleAssignment(
             'The role "%s" must not be assigned with a object.' % name
         )

@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django_extensions",
     "django_migration_linter",
+    "heavy_water",
     "django_orca",
     "example_project.main",
 ]

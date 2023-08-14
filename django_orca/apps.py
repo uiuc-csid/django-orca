@@ -2,8 +2,6 @@ from types import ModuleType
 
 from django.apps import AppConfig
 
-from .utils import register_cleanup
-
 
 class OrcaConfig(AppConfig):
     name = "django_orca"
@@ -13,5 +11,8 @@ class OrcaConfig(AppConfig):
     module: ModuleType
 
     def ready(self):
-        self.module.autodiscover()
+        from django_orca.registry import autodiscover
+        from django_orca.utils import register_cleanup
+
+        autodiscover()
         register_cleanup()

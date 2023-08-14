@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import List, Optional, Type, Union
+from typing import List, Type, Union
 
 from django.apps import apps
 from django.db.models import Model
@@ -8,8 +8,6 @@ from .exceptions import ImproperlyConfigured, NotAllowed
 
 ALLOW_MODE = 0
 DENY_MODE = 1
-
-ALL_MODELS = -1
 
 
 class Role(ABC):
@@ -22,17 +20,17 @@ class Role(ABC):
     verbose_name: str
 
     all_models: bool = False
-    models: Union[List[Union[Type[Model], str]], int]
+    models: List[Union[Type[Model], str]]
 
-    allow: Optional[List[str]]
-    deny: Optional[List[str]]
+    allow: List[str] = []
+    deny: List[str] = []
 
     unique: bool = False
     ranking: int = 0
 
     inherit: bool = False
-    inherit_allow: Optional[List[str]]
-    inherit_deny: Optional[List[str]]
+    inherit_allow: List[str] = []
+    inherit_deny: List[str] = []
 
     MODE = ALLOW_MODE
     INHERIT_MODE = ALLOW_MODE

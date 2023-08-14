@@ -2,13 +2,13 @@ from typing import List
 
 from django.conf import settings
 from django.contrib.auth.models import Permission
-from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models
 
 from .exceptions import RoleNotFound
-from .roles import ALL_MODELS, ALLOW_MODE
+from .roles import ALLOW_MODE
 from .utils import get_permissions_list, get_roleclass, permission_to_string
 
 
@@ -96,7 +96,7 @@ class UserRole(models.Model):
 
         # non-object roles does not have specific
         # permissions auto created.
-        if self.role.models == ALL_MODELS:
+        if self.role.all_models:
             return
 
         all_perms = get_permissions_list(self.role.get_models())
@@ -157,3 +157,7 @@ class RolePermission(models.Model):
 
     class Meta:
         unique_together = ("role", "permission")
+
+
+class RoleMixin:
+    roles = GenericRelation(UserRole)

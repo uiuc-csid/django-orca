@@ -7,7 +7,6 @@ from django.conf import settings
 from django.contrib.auth.mixins import AccessMixin
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
 from django.http import Http404
-from django.views import View
 
 from django_orca.roles import Role
 from django_orca.shortcuts import has_role

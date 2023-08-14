@@ -1,9 +1,11 @@
 import logging
 from importlib import import_module
 from inspect import getmembers
-from typing import Any, Dict, Type, Union
+from typing import Any, Dict, List, Type, Union
 
 from django.apps import apps
+from django.contrib.auth.models import Permission
+from django.db.models import Model
 from django.utils.module_loading import autodiscover_modules, module_has_submodule
 
 from .exceptions import AlreadyRegistered, ImproperlyConfigured
@@ -16,12 +18,31 @@ logger = logging.getLogger(__name__)
 ALLOW_MODE = 0
 DENY_MODE = 1
 
-ALL_MODELS = -1
 
+# Get model of foreign key field with Model._meta.get_field("field_name").related_model
+class OrcaRegistry:
+    class RoleRegistry(Dict[str, Type[Role]]):
+        def __contains__(self, item: Any) -> bool:
+            if isinstance(item, str):
+                return super().__contains__(item)
+            elif issubclass(item, Role):
+                return item in self.values()
+            else:
+                return False
 
-class RoleRegistry:
+        def __getitem__(self, key: Union[str, Type[Role]]) -> Type[Role]:
+            if isinstance(key, str):
+                return super().__getitem__(key)
+            elif issubclass(key, Role):
+                if key in self.values():
+                    return key
+                else:
+                    raise KeyError()
+            else:
+                raise KeyError()
+
     def __init__(self, name="django_orca"):
-        self._registry: Dict[str, Type[Role]] = {}
+        self._registry = OrcaRegistry.RoleRegistry()
         self.name = name
         orca_cache().clear()
 
@@ -29,25 +50,53 @@ class RoleRegistry:
     def roles_map(self):
         return self._registry
 
-    def role_class_list(self):
-        return self._registry.values()
+    def get_roles_for_perm(
+        self, permission: Union[Permission, str]
+    ) -> List[Type[Role]]:
+        perm = (
+            f"{permission.content_type.app_label}.{permission.codename}"
+            if isinstance(permission, Permission)
+            else permission
+        )
+        return [role for role in self.roles_map.values() if perm in role.allow] + [
+            role for role in self.roles_map.values() if perm in role.inherit_allow
+        ]
 
-    def __contains__(self, item: Any) -> bool:
-        if isinstance(item, str):
-            return item in self._registry
-        elif issubclass(item, Role):
-            return item in self._registry.values()
-        else:
-            return False
+    def _get_perm_inherits_tree(
+        self, curr: Type[Model], parents, attname
+    ) -> Dict[str, Type[Model]]:
+        parents[attname] = curr
 
-    def __getitem__(self, key: Union[str, Type[Role]]) -> Type[Role]:
-        if isinstance(key, str):
-            return self._registry[key]
-        elif issubclass(key, Role):
-            if key in self:
-                return key
-            else:
-                raise KeyError()
+        if hasattr(curr, "RoleOptions") and hasattr(
+            curr.RoleOptions, "permission_parents"
+        ):
+            for parent in curr.RoleOptions.permission_parents:
+                field = curr._meta.get_field(parent)
+                new_attname = f"{attname}__{field.attname}"
+                if new_attname not in parents:
+                    parents.update(
+                        self._get_perm_inherits_tree(
+                            field.related_model, parents, new_attname
+                        )
+                    )
+
+        return parents
+
+    def get_perm_inheritance_tree(self, model: Type[Model]) -> Dict[str, Type[Model]]:
+        accessors: Dict[str, Type[Model]] = {}
+
+        if hasattr(model, "RoleOptions") and hasattr(
+            model.RoleOptions, "permission_parents"
+        ):
+            for parent in model.RoleOptions.permission_parents:
+                field = model._meta.get_field(parent)
+                attname = field.attname
+                accessors.update(
+                    self._get_perm_inherits_tree(
+                        field.related_model, accessors, attname
+                    )
+                )
+        return accessors
 
     def register(self, kls):
         if not is_role(kls):
@@ -71,6 +120,11 @@ class RoleRegistry:
 
         self.__validate(kls)
         self._registry[kls.get_class_name()] = kls
+        try:
+            del self.get_roles_for_perm
+            del self.get_inheritance_roles_for_perm
+        except AttributeError:
+            pass
         logger.debug("Registered role: %s", kls)
 
     @classmethod
@@ -91,8 +145,7 @@ class RoleRegistry:
         # does not use allow/deny. In this case,
         # all permissions must be specified in
         # "inherit_allow" and "inherit_deny".
-        if new_class.models != ALL_MODELS:
-            new_class.MODE = cls.__validate_allow_deny(new_class, "allow", "deny")
+        new_class.MODE = cls.__validate_allow_deny(new_class, "allow", "deny")
 
         # Ensuring that "inherit" exists.
         # Default: False
@@ -118,7 +171,7 @@ class RoleRegistry:
     def __validate_models(cls, new_class):
         """
         Check if the attribute "models" is a valid list
-        of Django models or the constant ALL_MODELS.
+        of Django models.
         """
         name = new_class.get_verbose_name()
 
@@ -136,7 +189,7 @@ class RoleRegistry:
                         models_isvalid = False
                         break
                 new_class.models = valid_list
-            elif new_class.models == ALL_MODELS:
+            elif new_class.all_models:
                 # Role classes with ALL_MODELS autoimplies inherit=True.
                 new_class.inherit = True
                 new_class.unique = False
@@ -145,6 +198,9 @@ class RoleRegistry:
                 new_class.deny = []
             else:
                 models_isvalid = False
+        elif new_class.all_models:
+            new_class.inherit = True
+            new_class.unique = False
         else:
             models_isvalid = False
 
@@ -164,13 +220,13 @@ class RoleRegistry:
         name = new_class.get_verbose_name()
 
         # Checking for "allow" and "deny" fields
-        c_allow = hasattr(new_class, allow_field)
-        c_deny = hasattr(new_class, deny_field)
+        c_allow = getattr(new_class, allow_field, None)
+        c_deny = getattr(new_class, deny_field, None)
 
         # XOR operation.
         if c_allow and c_deny or not c_allow and not c_deny:
             raise ImproperlyConfigured(  # pragma: no cover
-                'Provide either "%s" or "%s" when inherit=True or models=ALL_MODELS for the Role "%s".'
+                'Provide either "%s" or "%s" when inherit=True for the Role "%s".'
                 % (allow_field, deny_field, name)
             )
 
@@ -189,7 +245,7 @@ class RoleRegistry:
         return result
 
 
-registry = RoleRegistry()
+registry = OrcaRegistry()
 
 
 def autodiscover(module_name="roles"):

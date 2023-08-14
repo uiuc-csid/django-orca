@@ -1,4 +1,4 @@
-from django_orca.roles import ALL_MODELS, Role
+from django_orca.roles import Role
 
 
 class DepartmentOwner(Role):
@@ -34,7 +34,6 @@ class CourseViewer(Role):
 
 class Superuser(Role):
     verbose_name = "Course Superuser"
-    models = ALL_MODELS
     all_models = True
     allow = [
         "main.view_course",

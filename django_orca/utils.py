@@ -47,8 +47,8 @@ def get_roleclass(role_class) -> Type[Role]:
     """
     from .registry import registry
 
-    if role_class in registry:
-        return registry[role_class]
+    if role_class in registry.roles_map:
+        return registry.roles_map[role_class]
     else:
         raise RoleNotFound("'%s' is not a registered role class." % role_class)
 

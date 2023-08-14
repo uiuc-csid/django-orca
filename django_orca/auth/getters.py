@@ -6,6 +6,7 @@ from django.contrib.auth.models import AbstractBaseUser
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
+from django_orca.registry import registry
 from django_orca.roles import Role
 
 from ..models import UserRole
@@ -14,6 +15,7 @@ from ..utils import check_my_model, get_roleclass
 RoleQ = Optional[Type[Role]]
 ModelQ = Optional[Type[models.Model]]
 T = TypeVar("T", bound=models.Model)
+T2 = TypeVar("T2", bound=models.Model)
 
 
 def get_users(
@@ -80,6 +82,48 @@ def get_qs_for_user(
         role_query = role_query.filter(role_class=role_name)
 
     qs = model.objects.filter(id__in=models.Subquery(role_query.values("object_id")))
+    return qs
+
+
+def get_objects_for_role(
+    model: Type[T], role_class: Type[Role], permission: str, userrole_qs
+) -> models.QuerySet[T]:
+    ct_obj = ContentType.objects.get_for_model(model)
+    qs = model.objects.none()
+    named_role_qs = userrole_qs.filter(
+        role_class=get_roleclass(role_class).get_class_name()
+    )
+
+    if (
+        role_class.all_models or model._meta.label in role_class.models
+    ) and permission in role_class.allow:
+        local_role_qs = named_role_qs.filter(content_type=ct_obj)
+        qs |= model.objects.filter(
+            id__in=models.Subquery(local_role_qs.values("object_id"))
+        )
+
+    if permission in role_class.inherit_allow:
+        parents = registry.get_perm_inheritance_tree(model)
+        for attname, parent in parents.items():
+            # Check whether there is a role with allow_inherit
+            if role_class.all_models or parent in role_class.models:
+                parent_ct = ContentType.objects.get_for_model(parent)
+                local_role_qs = named_role_qs.filter(content_type=parent_ct)
+                kwargs = {
+                    f"{attname}__in": models.Subquery(local_role_qs.values("object_id"))
+                }
+                qs |= model.objects.filter(**kwargs)
+
+    return qs
+
+
+def get_perm_qs_for_user(user, model: Type[T], permission: str) -> models.QuerySet[T]:
+    qs = model.objects.none()
+    userroles = UserRole.objects.filter(user=user)
+
+    for role in registry.get_roles_for_perm(permission):
+        qs |= get_objects_for_role(model, role, permission, userroles)
+
     return qs
 
 

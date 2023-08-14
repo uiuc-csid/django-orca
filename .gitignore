@@ -299,3 +299,4 @@ poetry.toml
 
 *.code-workspace
 tmp/
+.flakeheaven_cache
