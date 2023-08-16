@@ -72,7 +72,7 @@ class OrcaRegistry:
         ):
             for parent in curr.RoleOptions.permission_parents:
                 field = curr._meta.get_field(parent)
-                new_attname = f"{attname}__{field.attname}"
+                new_attname = f"{attname}__{field.name}"
                 if new_attname not in parents:
                     parents.update(
                         self._get_perm_inherits_tree(
@@ -90,7 +90,7 @@ class OrcaRegistry:
         ):
             for parent in model.RoleOptions.permission_parents:
                 field = model._meta.get_field(parent)
-                attname = field.attname
+                attname = field.name
                 accessors.update(
                     self._get_perm_inherits_tree(
                         field.related_model, accessors, attname

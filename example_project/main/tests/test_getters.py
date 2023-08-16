@@ -1,9 +1,10 @@
 import pytest
 
+from django_orca.auth.getters import get_perm_qs_for_user
 from django_orca.shortcuts import get_userroles, get_users
 
 from ..models import Course, Department, User
-from ..roles import CourseOwner, CourseViewer, DepartmentOwner
+from ..roles import CourseOwner, CourseViewer, DepartmentOwner, SchoolOwner
 
 
 @pytest.mark.django_db
@@ -103,3 +104,26 @@ def test_get_userroles(user: User, course_factory):
     assert get_userroles(user=user).count() == 3
     assert get_userroles(user=user, obj=course1).count() == 2
     assert get_userroles(user=user, obj=course2).count() == 1
+
+
+@pytest.mark.django_db
+def test_get_perm_qs_for_user(user_factory, course_factory):
+    user1: User = user_factory()
+    user2: User = user_factory()
+
+    course1: Course = course_factory()
+    course2: Course = course_factory(department=course1.department)
+    course3: Course = course_factory()
+
+    user1.assign_role(SchoolOwner, course1.department.school)
+    user2.assign_role(SchoolOwner, course3.department.school)
+
+    user1_course_qs = get_perm_qs_for_user(user1, Course, "main.view_course")
+    assert course1 in user1_course_qs
+    assert course2 in user1_course_qs
+    assert course3 not in user1_course_qs
+
+    user2_course_qs = get_perm_qs_for_user(user2, Course, "main.view_course")
+    assert course1 not in user2_course_qs
+    assert course2 not in user2_course_qs
+    assert course3 in user2_course_qs

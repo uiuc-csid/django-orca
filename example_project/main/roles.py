@@ -32,6 +32,17 @@ class CourseViewer(Role):
     ]
 
 
+class SchoolOwner(Role):
+    verbose_name = "School Owner"
+    models = ["main.School"]
+    allow = ["main.view_school", "main.change_school"]
+
+    inherit_allow = [
+        "main.view_course",
+        "main.change_course",
+    ]
+
+
 class Superuser(Role):
     verbose_name = "Course Superuser"
     all_models = True

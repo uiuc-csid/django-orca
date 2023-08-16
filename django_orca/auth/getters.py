@@ -95,7 +95,7 @@ def get_objects_for_role(
     )
 
     if (
-        role_class.all_models or model._meta.label in role_class.models
+        role_class.all_models or model in role_class.models
     ) and permission in role_class.allow:
         local_role_qs = named_role_qs.filter(content_type=ct_obj)
         qs |= model.objects.filter(
