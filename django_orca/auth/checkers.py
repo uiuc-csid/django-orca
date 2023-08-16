@@ -29,7 +29,10 @@ def has_permission(user, permission, obj=None, any_object=False):
         return False
 
     # We do not support any_object yet
-    if obj is None or any_object:
+    if any_object:
         raise NotImplementedError("We do not support any_object yet")
+
+    if obj is None:
+        return False
 
     return get_perm_qs_for_user(user, obj._meta.model, permission).filter(id=obj.id)
