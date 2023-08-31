@@ -2,7 +2,7 @@ import factory
 from django.conf import settings
 from factory.django import DjangoModelFactory
 
-from ..models import Course, Department, School
+from ..models import Course, Department, HonorsCourse, School
 
 
 class UserFactory(DjangoModelFactory):
@@ -40,3 +40,9 @@ class CourseFactory(DjangoModelFactory):
 
     name = factory.Faker("word")
     department = factory.SubFactory(DepartmentFactory)
+
+
+class HonorsCourseFactory(CourseFactory):
+    class Meta:
+        model = HonorsCourse
+        django_get_or_create = ["name"]

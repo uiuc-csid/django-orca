@@ -32,6 +32,15 @@ class CourseViewer(Role):
     ]
 
 
+class CourseViewerNoInherit(Role):
+    verbose_name = "Course Viewer"
+    models = ["main.Course"]
+    allow = [
+        "main.view_course",
+    ]
+    follow_inheritance = False
+
+
 class SchoolOwner(Role):
     verbose_name = "School Owner"
     models = ["main.School"]

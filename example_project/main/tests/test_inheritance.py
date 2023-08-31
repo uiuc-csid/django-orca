@@ -1,7 +1,7 @@
 import pytest
 
 from ..models import Course, Department, User
-from ..roles import DepartmentOwner, SchoolOwner
+from ..roles import CourseViewer, DepartmentOwner, SchoolOwner
 
 
 @pytest.mark.django_db
@@ -47,3 +47,14 @@ def test_multiple_hop_inheritance(user_factory, course_factory):
     assert user1.has_perm("main.view_course", course2)
     assert not user1.has_perm("main.view_course", course3)
     assert not user1.has_perm("main.delete_course", course1)
+
+
+@pytest.mark.django_db
+def test_model_inheritance(user, honors_course):
+    assert not user.has_perm("main.view_course", honors_course)
+    assert not user.has_perm("main.view_course", honors_course.course_ptr)
+
+    user.assign_role(CourseViewer, honors_course)
+
+    assert user.has_perm("main.view_course", honors_course)
+    assert user.has_perm("main.view_course", honors_course.course_ptr)

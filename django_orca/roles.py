@@ -21,6 +21,7 @@ class Role(ABC):
 
     all_models: bool = False
     models: List[Union[Type[Model], str]]
+    follow_model_inheritance: bool = True
 
     allow: List[str] = []
     deny: List[str] = []
@@ -77,4 +78,11 @@ class Role(ABC):
     @classmethod
     def is_my_model(cls, model):
         cls.__protect()
-        return model._meta.model in cls.get_models()  # pylint: disable=protected-access
+        if cls.follow_model_inheritance:
+            for parent, _ in model._meta.parents.items():
+                if parent in cls.get_models():
+                    return True
+        else:
+            return (
+                model._meta.model in cls.get_models()
+            )  # pylint: disable=protected-access
