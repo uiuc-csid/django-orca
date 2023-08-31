@@ -86,21 +86,37 @@ def get_qs_for_user(
 
 
 def get_objects_for_role(
-    model: Type[T], role_class: Type[Role], permission: str, userrole_qs
+    model: Type[T],
+    role_class: Type[Role],
+    permission: str,
+    userrole_qs,
+    parent_model: Optional[T] = None,
 ) -> models.QuerySet[T]:
-    ct_obj = ContentType.objects.get_for_model(model)
+
     qs = model.objects.none()
     named_role_qs = userrole_qs.filter(
         role_class=get_roleclass(role_class).get_class_name()
     )
 
     if (
-        role_class.all_models or model in role_class.models
+        role_class.all_models
+        or (not parent_model and model in role_class.models)
+        or (parent_model and parent_model in role_class.models)
     ) and permission in role_class.allow:
-        local_role_qs = named_role_qs.filter(content_type=ct_obj)
-        qs |= model.objects.filter(
-            id__in=models.Subquery(local_role_qs.values("object_id"))
-        )
+        if parent_model:
+            ct_objs = ContentType.objects.get_for_models(model, parent_model).values()
+            local_role_qs = named_role_qs.filter(content_type__in=ct_objs)
+            path_to_id = model._meta.get_ancestor_link(parent_model).attname
+            filter_kwargs = {
+                f"{path_to_id}__in": models.Subquery(local_role_qs.values("object_id"))
+            }
+        else:
+            ct_obj = ContentType.objects.get_for_model(model)
+            local_role_qs = named_role_qs.filter(content_type=ct_obj)
+            filter_kwargs = {
+                "id__in": models.Subquery(local_role_qs.values("object_id"))
+            }
+        qs |= model.objects.filter(**filter_kwargs)
 
     if permission in role_class.inherit_allow:
         parents = registry.get_perm_inheritance_tree(model)
@@ -123,6 +139,11 @@ def get_perm_qs_for_user(user, model: Type[T], permission: str) -> models.QueryS
 
     for role in registry.get_roles_for_perm(permission):
         qs |= get_objects_for_role(model, role, permission, userroles)
+        if role.follow_model_inheritance:
+            for parent in model._meta.get_parent_list():
+                qs |= get_objects_for_role(
+                    model, role, permission, userroles, parent_model=parent
+                )
 
     return qs
 

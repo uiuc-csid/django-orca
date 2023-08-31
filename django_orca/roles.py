@@ -79,6 +79,9 @@ class Role(ABC):
     def is_my_model(cls, model):
         cls.__protect()
         if cls.follow_model_inheritance:
+            if model._meta.model in cls.get_models():
+                return True
+
             for parent, _ in model._meta.parents.items():
                 if parent in cls.get_models():
                     return True

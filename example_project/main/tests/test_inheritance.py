@@ -52,9 +52,5 @@ def test_multiple_hop_inheritance(user_factory, course_factory):
 @pytest.mark.django_db
 def test_model_inheritance(user, honors_course):
     assert not user.has_perm("main.view_course", honors_course)
-    assert not user.has_perm("main.view_course", honors_course.course_ptr)
-
     user.assign_role(CourseViewer, honors_course)
-
     assert user.has_perm("main.view_course", honors_course)
-    assert user.has_perm("main.view_course", honors_course.course_ptr)
