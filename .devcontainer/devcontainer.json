@@ -73,7 +73,8 @@
 				"SimonSiefke.svg-preview",
 				"ryanluker.vscode-coverage-gutters",
 				"DavidAnson.vscode-markdownlint",
-                "samuelcolvin.jinjahtml"
+                "samuelcolvin.jinjahtml",
+				"charliermarsh.ruff",
 			]
 		}
 	},
