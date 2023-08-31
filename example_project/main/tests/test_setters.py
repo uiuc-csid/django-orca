@@ -1,5 +1,4 @@
 import pytest
-
 from django_orca.exceptions import InvalidRoleAssignment
 from django_orca.shortcuts import assign_role, get_userroles, remove_role
 

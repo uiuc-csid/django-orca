@@ -31,16 +31,6 @@ class UserRole(models.Model):
     in the Role class.
     """
 
-    class Meta:
-        verbose_name = "Role Instance"
-        verbose_name_plural = "Role Instances"
-        unique_together = ("user", "role_class", "content_type", "object_id")
-        indexes = [
-            models.Index(fields=["role_class"]),
-            models.Index(fields=["user"]),
-            models.Index(fields=["content_type"]),
-        ]
-
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -63,8 +53,15 @@ class UserRole(models.Model):
 
     objects = UserRoleManager()
 
-    def natural_key(self):
-        return (self.user.id, self.role_class, self.content_type.id, self.object_id)
+    class Meta:
+        verbose_name = "Role Instance"
+        verbose_name_plural = "Role Instances"
+        unique_together = ("user", "role_class", "content_type", "object_id")
+        indexes = [
+            models.Index(fields=["role_class"]),
+            models.Index(fields=["user"]),
+            models.Index(fields=["content_type"]),
+        ]
 
     def __str__(self):
         role = get_roleclass(self.role_class)
@@ -72,23 +69,6 @@ class UserRole(models.Model):
         if self.obj:
             output += " of {obj}".format(obj=self.obj)
         return output
-
-    @property
-    def role(self):
-        return get_roleclass(self.role_class)
-
-    def get_verbose_name(self):
-        return self.role.get_verbose_name()
-
-    def clean(self):
-        try:
-            get_roleclass(self.role_class)
-        except RoleNotFound:
-            raise ValidationError(
-                {
-                    "role_class": "This string representation does not exist as a Role class."
-                }
-            )
 
     def save(self, *args, **kwargs):  # pylint: disable=arguments-differ,unused-argument
         self.clean()
@@ -120,6 +100,26 @@ class UserRole(models.Model):
 
         RolePermission.objects.bulk_create(role_instances)
 
+    def natural_key(self):
+        return (self.user.id, self.role_class, self.content_type.id, self.object_id)
+
+    @property
+    def role(self):
+        return get_roleclass(self.role_class)
+
+    def get_verbose_name(self):
+        return self.role.get_verbose_name()
+
+    def clean(self):
+        try:
+            get_roleclass(self.role_class)
+        except RoleNotFound:
+            raise ValidationError(
+                {
+                    "role_class": "This string representation does not exist as a Role class."
+                }
+            )
+
 
 class RolePermissionManager(models.Manager):
     def get_by_natural_key(self, role_id, permission_id):
@@ -150,13 +150,16 @@ class RolePermission(models.Model):
 
     objects = RolePermissionManager()
 
+    class Meta:
+        unique_together = ("role", "permission")
+
+    def __str__(self) -> str:
+        return f"{self.role} -> {self.permission}, ({self.access})"
+
     def natural_key(self):
         return (self.role.id, self.permission.id)
 
     natural_key.dependencies = ["django_orca.userrole"]
-
-    class Meta:
-        unique_together = ("role", "permission")
 
 
 class RoleMixin:

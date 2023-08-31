@@ -1,5 +1,4 @@
 import pytest
-
 from django_orca.shortcuts import get_userroles
 
 from ..models import Course, Department, User
