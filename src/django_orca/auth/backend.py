@@ -24,5 +24,5 @@ class OrcaBackend(BaseBackend):
             *self.get_group_permissions(user_obj, obj=obj),
         }
 
-    def has_perm(self, user_obj, perm, obj=None):
+    def has_perm(self, user_obj, perm, obj=None) -> bool:
         return has_permission(user_obj, perm, obj=obj)

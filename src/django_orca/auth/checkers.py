@@ -8,7 +8,7 @@ from django_orca.roles import Role
 RoleQ = Optional[Type[Role]]
 
 
-def has_role(user, role_class: RoleQ = None, obj=None):
+def has_role(user, role_class: RoleQ = None, obj=None) -> bool:
     """
     Check if the "user" has any role attached to them.
 
@@ -21,7 +21,7 @@ def has_role(user, role_class: RoleQ = None, obj=None):
         return get_userroles(user, role_class=role_class, obj=obj).exists()
 
 
-def has_permission(user, permission, obj=None, any_object=False):
+def has_permission(user, permission, obj=None, any_object=False) -> bool:
     """
     Return True if the "user" has the "permission".
     """
@@ -35,4 +35,8 @@ def has_permission(user, permission, obj=None, any_object=False):
     if obj is None:
         return False
 
-    return get_perm_qs_for_user(user, obj._meta.model, permission).filter(id=obj.id)
+    return (
+        get_perm_qs_for_user(user, obj._meta.model, permission)
+        .filter(id=obj.id)
+        .exists()
+    )

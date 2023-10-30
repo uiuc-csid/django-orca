@@ -92,7 +92,6 @@ def get_objects_for_role(
     userrole_qs,
     parent_model: Optional[T] = None,
 ) -> models.QuerySet[T]:
-
     qs = model.objects.none()
     named_role_qs = userrole_qs.filter(
         role_class=get_roleclass(role_class).get_class_name()
