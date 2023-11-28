@@ -9,8 +9,7 @@ RoleQ = Optional[Type[Role]]
 
 
 def has_role(user, role_class: RoleQ = None, obj=None) -> bool:
-    """
-    Check if the "user" has any role attached to them.
+    """Check if the user has any role attached to them.
 
     If "role_class" is provided, only instances of the role class will be counted.
     If "obj" is provided, the search is refined to look only at that object.
@@ -22,9 +21,7 @@ def has_role(user, role_class: RoleQ = None, obj=None) -> bool:
 
 
 def has_permission(user, permission, obj=None, any_object=False) -> bool:
-    """
-    Return True if the "user" has the "permission".
-    """
+    """Return True if the user has the given permission."""
     if isinstance(user, AnonymousUser):
         return False
 

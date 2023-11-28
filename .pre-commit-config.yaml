@@ -6,7 +6,7 @@ repos:
       - id: sync_with_poetry
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.0.286
+    rev: v0.1.6
     hooks:
       - id: ruff
         args:

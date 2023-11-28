@@ -20,7 +20,7 @@ def assign_role(user, role_class: Type[Role], obj=None):
 
 
 def assign_roles(users_list: List[AbstractBaseUser], role_class: Type[Role], obj=None):
-    # TODO: There should be a flag to ignore assigning a role twice
+    # TODO(joshuata): There should be a flag to ignore assigning a role twice
     users_set = set(users_list)
     role = get_roleclass(role_class)
     name = role.get_verbose_name()
@@ -83,15 +83,13 @@ def assign_roles(users_list: List[AbstractBaseUser], role_class: Type[Role], obj
 
 
 def remove_role(user, role_class=None, obj=None):
-    """
-    Proxy method to be used for one User instance.
-    """
+    """Proxy method to be used for one User instance."""
     remove_roles([user], role_class, obj)
 
 
 def remove_roles(users_list, role_class=None, obj=None):
-    """
-    Delete all RolePermission objects in the database referencing the followling role_class to the user.
+    """Delete all RolePermission objects in the database referencing the followling role_class to the user.
+
     If "obj" is provided, only the instances refencing this object will be deleted.
     """
     query = get_userroles(users_list, role_class=role_class, obj=obj)

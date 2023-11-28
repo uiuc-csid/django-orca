@@ -17,6 +17,12 @@ djangorestframework = { version = "^3.13.0", optional = true}
 [tool.poetry.extras]
 drf = ["djangorestframework"]
 
+[tool.poetry.group.docs.dependencies]
+mkdocs-material = "^9.4.14"
+mkdocstrings = {extras = ["python"], version = "^0.24.0"}
+mkdocs-gen-files = "^0.5.0"
+mkdocs-literate-nav = "^0.6.1"
+
 [tool.poetry.group.dev.dependencies]
 ipython = "*"
 mypy = "*"
@@ -95,7 +101,10 @@ directory = "tmp/htmlcov"
 output = "tmp/coverage.xml"
 
 [tool.ruff]
-select = ["E", "F", "I", "DJ"]
+select = ["E", "F", "I", "DJ", "TD", "D"]
 target-version = "py311"
-ignore = ["E501"]
+ignore = ["E501", "TD003", "D100", "D101", "D102", "D103", "D104", "D105", "D106", "D107"]
 src = ["src"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"

@@ -11,14 +11,15 @@ DENY_MODE = 1
 
 
 class Role(ABC):
-    """
-    Role
+    """This abstract class is the base for all other roles.
 
-    This abstract class is the base for all other roles
+    Attributes:
+        verbose_name:       The verbose name of the role
+        all_models:         If true this role applies to all models
+        models:             The models this role applies to
     """
 
     verbose_name: str
-
     all_models: bool = False
     models: List[Union[Type[Model], str]]
     follow_model_inheritance: bool = True
