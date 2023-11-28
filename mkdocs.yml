@@ -1,0 +1,25 @@
+site_name: My Docs
+
+theme:
+  name: material
+
+
+nav:
+  - index.md
+  - Code Reference: reference/
+
+plugins:
+- search  
+- gen-files:
+    scripts:
+    - scripts/gen_ref_pages.py
+- literate-nav:
+    nav_file: SUMMARY.md
+- mkdocstrings
+
+# markdown_extensions:
+#   - pymdownx.superfences:
+#       custom_fences:
+#         - name: mermaid
+#           class: mermaid
+#           format: !!python/name:pymdownx.superfences.fence_code_format
