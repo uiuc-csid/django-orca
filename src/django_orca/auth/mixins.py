@@ -4,13 +4,7 @@ from django_orca import shortcuts
 
 
 class UserRoleMixin(models.Model):
-    """
-    UserRoleMixin
-    This mixin is a helper to be attached
-    in the User model in order to use the
-    most of the methods in the shortcuts
-    module.
-    """
+    """Mixin to allow accessing role methods from a User object."""
 
     class Meta:
         abstract = True

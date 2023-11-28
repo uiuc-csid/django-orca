@@ -101,7 +101,10 @@ directory = "tmp/htmlcov"
 output = "tmp/coverage.xml"
 
 [tool.ruff]
-select = ["E", "F", "I", "DJ", "TD"]
+select = ["E", "F", "I", "DJ", "TD", "D"]
 target-version = "py311"
-ignore = ["E501", "TD003"]
+ignore = ["E501", "TD003", "D100", "D101", "D102", "D103", "D104", "D105", "D106", "D107"]
 src = ["src"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
