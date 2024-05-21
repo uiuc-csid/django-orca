@@ -21,7 +21,8 @@ T2 = TypeVar("T2", bound=models.Model)
 def get_users(
     role_class: RoleQ = None, obj: Any = None
 ) -> models.QuerySet[AbstractBaseUser]:
-    """
+    """Retrieves a list of users based on role or model instance.
+
     If "role_class" and "obj" is provided, returns a QuerySet of users who has this role class attached to the object.
     If only "role_class" is provided, returns a QuerySet of users who has this role class attached to any object.
     If neither "role_class" or "obj" are provided, returns all users of the project.
@@ -49,8 +50,8 @@ def get_users(
 
 
 def get_objects(user, role_class: RoleQ = None, model=None) -> List[Any]:
-    """
-    Return the list of objects attached to a given user.
+    """Returns the list of objects attached to a given user.
+
     If "role_class" is provided, only the objects which as registered in that role class will be returned.
     If "model" is provided, only the objects of that model will be returned.
     """
@@ -73,7 +74,7 @@ def get_objects(user, role_class: RoleQ = None, model=None) -> List[Any]:
 def get_qs_for_user(
     user, model: Type[T], role_class: RoleQ = None
 ) -> models.QuerySet[T]:
-    # TODO: Include permission inheritance
+    # TODO(joshuata): Include permission inheritance
     ct_obj = ContentType.objects.get_for_model(model)
     role_query = UserRole.objects.filter(user=user, content_type=ct_obj.id)
 
@@ -153,8 +154,8 @@ def get_userroles(
     obj: Optional[models.Model] = None,
     model_class: ModelQ = None,
 ) -> models.QuerySet[UserRole]:
-    """
-    Return a QuerySet of UserRole objects associated to "user".
+    """Return a QuerySet of UserRole objects associated to "user".
+
     If "obj" is provided, the QuerySet is filtered by "obj" as well.
     """
     query = UserRole.objects.all()
@@ -183,8 +184,8 @@ def get_userroles(
 
 
 def get_user_roles_strings(user, obj: Optional[models.Model] = None):
-    """
-    Return a list of role classes associated to "user".
+    """Return a list of role classes associated to "user".
+
     If "obj" is provided, the list is filtered by "obj" as well.
     """
     # Transform the string representations into role classes and return as list
@@ -192,9 +193,8 @@ def get_user_roles_strings(user, obj: Optional[models.Model] = None):
 
 
 def get_permissions_from_roles(roles: Iterable[UserRole], clean=False) -> List:
-    """
-    roles: list or QuerySet of UserRole objects
-    For given role(s), return a list of all allowed permissions.
+    """For given role(s), return a list of all allowed permissions.
+
     If clean=True, return the permissions without the Django app prefix.
     """
     role_classes = [get_roleclass(ur.role_class) for ur in roles]

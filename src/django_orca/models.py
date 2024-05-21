@@ -23,13 +23,7 @@ class UserRoleManager(models.Manager):
 
 
 class UserRole(models.Model):
-    """
-    UserRole
-    This model represents the relationship between
-    a user instance of the project with any other
-    Django model, according to the rules defined
-    in the Role class.
-    """
+    """Mapping from User to Role class."""
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -127,13 +121,9 @@ class RolePermissionManager(models.Manager):
 
 
 class RolePermission(models.Model):
-    """
-    RolePermission
-    This model has the function of performing
-    the m2m relation between the Permission
-    and the UserRole instances. It is possible
-    that different instances of the same UserRole
-    may have access to different permissions.
+    """Model  for m2m relation between Permission and UserRole.
+
+    It is possible that different instances of the same UserRole may have access to different permissions.
     """
 
     PERMISSION_CHOICES = ((True, "Allow"), (False, "Deny"))

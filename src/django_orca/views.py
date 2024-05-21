@@ -1,7 +1,8 @@
+"""Useful views and mixins for using django_orca."""
 from __future__ import annotations
 
 from collections.abc import Iterable
-from typing import Type
+from typing import List, Type
 
 from django.conf import settings
 from django.contrib.auth.mixins import AccessMixin
@@ -13,17 +14,24 @@ from django_orca.shortcuts import has_role
 
 
 class ObjectPermissionRequiredMixin(AccessMixin):
-    """
-    PermissionMixin
+    """Checks whether the accessor has the specified permission(s) on the referenced object.
 
-    This checks whether the accessor has the specified permission(s) on the referenced object
+    Attributes:
+        login_url:  The page.
+        return_404: If true, will return a 404. Otherwise this will return a 403. False by default
+        permission_required: The permission or list of permissions to be checked
     """
 
-    login_url = settings.LOGIN_URL
+    login_url: str = settings.LOGIN_URL
     permission_required: str | Iterable[str]
-    return_404 = False
+    return_404: bool = False
 
-    def get_permission_required(self):
+    def get_permission_required(self) -> List[str]:
+        """Retrieves the list of required permissions from the `permission_required` attribute.
+
+        Returns:
+            List[str]: A list of all required permissions
+        """
         if self.permission_required:
             if isinstance(self.permission_required, str):
                 return [self.permission_required]
@@ -66,11 +74,20 @@ class ObjectPermissionRequiredMixin(AccessMixin):
 
 
 class ObjectRoleRequiredMixin(AccessMixin):
-    login_url = settings.LOGIN_URL
-    role_required: Type[Role]
-    return_404 = False
+    """Checks whether the accessor has the specified role(s) on the referenced object.
 
-    def get_role_required(self):
+    Attributes:
+        login_url:  The page.
+        return_404: If true, will return a 404. Otherwise this will return a 403. False by default
+        permission_required: The role that will be validated
+    """
+
+    login_url: str = settings.LOGIN_URL
+    permission_required: Type[Role]
+    return_404: bool = False
+
+    def get_role_required(self) -> Type[Role]:
+        """Retrieves the role that will be required for the page."""
         if self.role_required:
             return self.role_required
 

@@ -2,6 +2,7 @@ from typing import Any, Dict
 
 from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
+
 from django_orca.views import ObjectPermissionRequiredMixin, ObjectRoleRequiredMixin
 
 from .models import Course, Department

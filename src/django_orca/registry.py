@@ -169,10 +169,7 @@ class OrcaRegistry:
 
     @classmethod
     def __validate_models(cls, new_class):
-        """
-        Check if the attribute "models" is a valid list
-        of Django models.
-        """
+        """Check if the attribute "models" is a valid list of Django models."""
         name = new_class.get_verbose_name()
 
         models_isvalid = True
@@ -212,7 +209,8 @@ class OrcaRegistry:
 
     @classmethod
     def __validate_allow_deny(cls, new_class, allow_field, deny_field):
-        """
+        """Validate the allow/deny attributes.
+
         This method validates the set attributes "allow/inherit_allow"
         and "deny/inherit_deny", checking if their values are a valid
         list of permissions in string representation.

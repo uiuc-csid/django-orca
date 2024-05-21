@@ -1,5 +1,6 @@
 import pytest
 from django.contrib.auth.models import AnonymousUser
+
 from django_orca.shortcuts import has_permission, has_role
 
 from ..models import Course, User

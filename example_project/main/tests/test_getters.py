@@ -1,4 +1,5 @@
 import pytest
+
 from django_orca.auth.getters import get_perm_qs_for_user
 from django_orca.shortcuts import get_userroles, get_users
 
