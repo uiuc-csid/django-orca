@@ -23,7 +23,6 @@ def assign_roles(users_list: List[AbstractBaseUser], role_class: Type[Role], obj
     # TODO: There should be a flag to ignore assigning a role twice
     users_set = set(users_list)
     role = get_roleclass(role_class)
-    name = role.get_verbose_name()
 
     # Check if object belongs to the role class.
     check_my_model(role, obj)
@@ -31,13 +30,14 @@ def assign_roles(users_list: List[AbstractBaseUser], role_class: Type[Role], obj
     # If no object is provided but the role needs specific models.
     if not obj and not role.all_models:
         raise InvalidRoleAssignment(
-            'The role "%s" must be assigned with a object.' % name
+            'The role "%s" must be assigned with a object.' % role.get_verbose_name()
         )
 
     # If a object is provided but the role does not needs a object.
     if obj and role.all_models:
         raise InvalidRoleAssignment(
-            'The role "%s" must not be assigned with a object.' % name
+            'The role "%s" must not be assigned with a object.'
+            % role.get_verbose_name()
         )
 
     # Check if the model accepts multiple roles
@@ -56,7 +56,7 @@ def assign_roles(users_list: List[AbstractBaseUser], role_class: Type[Role], obj
         if len(users_list) > 1:
             raise InvalidRoleAssignment(
                 'Multiple users were provided using "%s", '
-                "but it is marked as unique." % name
+                "but it is marked as unique." % role.get_verbose_name()
             )
 
         # If the role is marked as unique but already has an user attached.
@@ -64,7 +64,7 @@ def assign_roles(users_list: List[AbstractBaseUser], role_class: Type[Role], obj
         if has_user:
             raise InvalidRoleAssignment(
                 'The object "%s" already has a "%s" attached '
-                "and it is marked as unique." % (obj, name)
+                "and it is marked as unique." % (obj, role.get_verbose_name())
             )
 
     for user in users_set:
