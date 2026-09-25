@@ -1,9 +1,11 @@
 import inspect
 import logging
 import time
-from typing import Optional, Type
+from typing import Optional, Type, Union
 
 from django.core.cache.backends.base import BaseCache
+from django.db import models
+from django.db.models.functions import Cast, Replace
 
 from django_orca.roles import Role
 
@@ -133,7 +135,7 @@ def cleanup_handler(sender, instance, **kwargs):  # pylint: disable=unused-argum
     from .models import UserRole
 
     ct_obj = ContentType.objects.get_for_model(instance)
-    ur_list = UserRole.objects.filter(content_type=ct_obj.id, object_id=instance.id)
+    ur_list = UserRole.objects.filter(content_type=ct_obj.id, object_id=instance.pk)
 
     for ur_obj in ur_list:
         ur_obj.delete()
@@ -150,8 +152,38 @@ def register_cleanup():
 
     ignore = [UserRole, RolePermission]
     for model in apps.get_models():
-        if model not in ignore and hasattr(model, "id"):
+        if model not in ignore:
             post_delete.connect(cleanup_handler, sender=model, dispatch_uid=str(model))
+
+
+def pk_field(model) -> models.Field:
+    """
+    Return the field that holds the primary key value of "model". For a
+    multi-table inheritance child, whose primary key links to its parent,
+    this is the parent's primary key field.
+    """
+    field = model._meta.pk
+    while field.is_relation:
+        field = field.target_field
+    return field
+
+
+def object_ids(userroles, model) -> models.Subquery:
+    """
+    Return a subquery of the "object_id" values of "userroles", converted to
+    the type of the primary key of "model" so they can be compared with it.
+    """
+    field = pk_field(model)
+    object_id: Union[models.F, Replace] = models.F("object_id")
+    if isinstance(field, models.UUIDField):
+        # object_id holds str(uuid), which has hyphens, but databases without a
+        # native UUID type store UUIDs as 32 hex characters.
+        object_id = Replace(object_id, models.Value("-"), models.Value(""))
+    return models.Subquery(
+        userroles.annotate(orca_object_pk=Cast(object_id, output_field=field)).values(
+            "orca_object_pk"
+        )
+    )
 
 
 def check_my_model(role, obj):

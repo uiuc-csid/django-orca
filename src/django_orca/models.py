@@ -15,7 +15,7 @@ from .utils import get_permissions_list, get_roleclass, permission_to_string
 class UserRoleManager(models.Manager):
     def get_by_natural_key(self, user_id, role_class, content_type_id, object_id):
         return self.get(
-            user__id=user_id,
+            user__pk=user_id,
             role_class=role_class,
             content_type__id=content_type_id,
             object_id=object_id,
@@ -48,7 +48,10 @@ class UserRole(models.Model):
     role_class = models.CharField(max_length=256)
 
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True)
-    object_id = models.PositiveIntegerField(null=True)
+    # Text, so any primary key type fits. Holds str(pk), like Django's
+    # generic relations; queries cast it back to the primary key's type.
+    # NULL, like content_type, for roles that aren't attached to an object.
+    object_id = models.CharField(max_length=255, null=True)  # noqa: DJ001
     obj = GenericForeignKey()
 
     objects = UserRoleManager()
@@ -107,7 +110,7 @@ class UserRole(models.Model):
         RolePermission.objects.using(self._state.db).bulk_create(role_instances)
 
     def natural_key(self):
-        return (self.user.id, self.role_class, self.content_type.id, self.object_id)
+        return (self.user.pk, self.role_class, self.content_type.id, self.object_id)
 
     @property
     def role(self):

@@ -37,6 +37,6 @@ def has_permission(user, permission, obj=None, any_object=False) -> bool:
 
     return (
         get_perm_qs_for_user(user, obj._meta.model, permission)
-        .filter(id=obj.id)
+        .filter(pk=obj.pk)
         .exists()
     )

@@ -31,4 +31,4 @@ def test_user_role_save_passes_arguments(user: User, course_factory):
     user_role.refresh_from_db()
     assert user_role.role_class == CourseViewer.get_class_name()
     # object_id was not in update_fields, so it is unchanged.
-    assert user_role.object_id == course.id
+    assert user_role.object_id == str(course.id)

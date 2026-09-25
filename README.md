@@ -10,7 +10,7 @@ A role-based access control backend for django based on [django-improved-permiss
 
 - [ ] Enable `ALL_MODELS` mode. Roles with `all_models = True` can be assigned but grant nothing, `get_objects()` crashes for users who have one, and `UserRole.natural_key()` fails for them.
 - [ ] Use one source of truth for permissions. `has_perm` reads the role classes and follows inheritance, but `get_user_permissions`/`get_all_permissions` read `RolePermission` rows saved at assignment time and ignore inheritance, so the two disagree.
-- [ ] Support large and non-integer primary keys. `UserRole.object_id` is a 32-bit `PositiveIntegerField`, and the code uses `obj.id` instead of `obj.pk`.
+- [ ] `get_user_permissions`/`get_all_permissions` return `Permission` objects, but Django expects `"app_label.codename"` strings, so they mix badly with other backends.
 - [ ] Only attach the `post_delete` cleanup handler to models used by roles. Attaching it to every model disables fast deletes across the whole project, and it deletes roles one query at a time.
 
 ### Design
@@ -38,6 +38,7 @@ A role-based access control backend for django based on [django-improved-permiss
 
 ### Done
 
+- [x] Support large and non-integer primary keys
 - [x] Fix `IntegrityError` when re-saving a `UserRole`
 - [x] Replace pre-commit and black with hk
 - [x] Add separate cache so that role cache invalidation does not clear everything

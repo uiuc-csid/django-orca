@@ -79,3 +79,16 @@ class CourseInstructor(Role):
     models = ["main.Course"]
     allow = ["main.change_course"]
     unique = True
+
+
+class ProjectOwner(Role):
+    verbose_name = "Project Owner"
+    models = ["main.Project"]
+    allow = ["main.view_project", "main.change_project"]
+    inherit_allow = ["main.view_task"]
+
+
+class TaskOwner(Role):
+    verbose_name = "Task Owner"
+    models = ["main.Task"]
+    allow = ["main.view_task", "main.change_task"]

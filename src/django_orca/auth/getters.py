@@ -10,7 +10,7 @@ from django_orca.registry import registry
 from django_orca.roles import Role
 
 from ..models import UserRole
-from ..utils import check_my_model, get_roleclass
+from ..utils import check_my_model, get_roleclass, object_ids
 
 RoleQ = Optional[Type[Role]]
 ModelQ = Optional[Type[models.Model]]
@@ -38,7 +38,7 @@ def get_users(
         # All users who have any role attached to the object.
         ct_obj = ContentType.objects.get_for_model(obj)
         kwargs["roles__content_type"] = ct_obj.id
-        kwargs["roles__object_id"] = obj.id
+        kwargs["roles__object_id"] = obj.pk
 
     # Check if object belongs
     # to the role class.
@@ -65,7 +65,7 @@ def get_objects(user, role_class: RoleQ = None, model=None) -> List[Any]:
         for content_type_id, group in groupby(query, lambda obj: obj["content_type"]):
             content_type = ContentType.objects.get_for_id(content_type_id)
             ids = [obj["object_id"] for obj in group]
-            objs.extend(content_type.model_class().objects.filter(id__in=ids))
+            objs.extend(content_type.model_class().objects.filter(pk__in=ids))
 
         return objs
 
@@ -81,7 +81,7 @@ def get_qs_for_user(
         role_name = get_roleclass(role_class).get_class_name()
         role_query = role_query.filter(role_class=role_name)
 
-    qs = model.objects.filter(id__in=models.Subquery(role_query.values("object_id")))
+    qs = model.objects.filter(pk__in=object_ids(role_query, model))
     return qs
 
 
@@ -107,14 +107,12 @@ def get_objects_for_role(
             local_role_qs = named_role_qs.filter(content_type__in=ct_objs)
             path_to_id = model._meta.get_ancestor_link(parent_model).attname
             filter_kwargs = {
-                f"{path_to_id}__in": models.Subquery(local_role_qs.values("object_id"))
+                f"{path_to_id}__in": object_ids(local_role_qs, parent_model)
             }
         else:
             ct_obj = ContentType.objects.get_for_model(model)
             local_role_qs = named_role_qs.filter(content_type=ct_obj)
-            filter_kwargs = {
-                "id__in": models.Subquery(local_role_qs.values("object_id"))
-            }
+            filter_kwargs = {"pk__in": object_ids(local_role_qs, model)}
         qs |= model.objects.filter(**filter_kwargs)
 
     if permission in role_class.inherit_allow:
@@ -124,9 +122,7 @@ def get_objects_for_role(
             if role_class.all_models or parent in role_class.models:
                 parent_ct = ContentType.objects.get_for_model(parent)
                 local_role_qs = named_role_qs.filter(content_type=parent_ct)
-                kwargs = {
-                    f"{attname}__in": models.Subquery(local_role_qs.values("object_id"))
-                }
+                kwargs = {f"{attname}__in": object_ids(local_role_qs, parent)}
                 qs |= model.objects.filter(**kwargs)
 
     return qs
@@ -177,7 +173,7 @@ def get_userroles(
 
     if obj:
         ct_obj = ContentType.objects.get_for_model(obj)
-        query = query.filter(content_type=ct_obj.id, object_id=obj.id)
+        query = query.filter(content_type=ct_obj.id, object_id=obj.pk)
 
     return query
 

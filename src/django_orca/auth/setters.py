@@ -73,7 +73,7 @@ def assign_roles(users_list: List[AbstractBaseUser], role_class: Type[Role], obj
                 role_class=role.get_class_name(),
                 user=user,
                 content_type=ContentType.objects.get_for_model(obj),
-                object_id=obj.id,
+                object_id=obj.pk,
             )
         else:
             UserRole.objects.get_or_create(role_class=role.get_class_name(), user=user)

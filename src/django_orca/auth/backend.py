@@ -13,7 +13,7 @@ class OrcaBackend(BaseBackend):
         query = RolePermission.objects.filter(role__user=user_obj)
         if obj:
             ct_obj = ContentType.objects.get_for_model(obj)
-            query = query.filter(role__content_type=ct_obj.id, role__object_id=obj.id)
+            query = query.filter(role__content_type=ct_obj.id, role__object_id=obj.pk)
 
         allows = set([rp.permission for rp in query if rp.access])
         return allows.difference([rp.permission for rp in query if not rp.access])

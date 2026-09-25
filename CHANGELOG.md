@@ -4,6 +4,11 @@ All notable changes to django-orca. The format follows [Keep a Changelog](https:
 
 ## Unreleased
 
+### Upgrading from 0.1.0
+
+- **Run `manage.py migrate`.** Migration `0003` changes `UserRole.object_id` from an integer to text. Existing values are kept.
+- **`UserRole.object_id` is now a string**, such as `"5"` instead of `5`. Code that reads it and compares it with an integer needs to convert it. Filtering with an integer, such as `UserRole.objects.filter(object_id=5)`, still works.
+
 ### Changed
 
 - Development only: git hooks and linting run through hk (`mise run lint`, `mise run fix`) instead of pre-commit, and code is formatted with ruff instead of black. Markdown is linted with markdownlint-cli2.
@@ -14,6 +19,7 @@ All notable changes to django-orca. The format follows [Keep a Changelog](https:
 
 ### Fixed
 
+- Roles work with objects whose primary key isn't a 32-bit integer, including `BigAutoField` values above 2,147,483,647, UUIDs and text keys. Models whose primary key isn't named `id` also have their roles removed when they're deleted, and custom user models with a differently named primary key work with `UserRole` natural keys.
 - Saving an existing `UserRole` again no longer fails with `IntegrityError`. Its permissions are only created when the role is first saved. `UserRole.save()` also passes its arguments, such as `update_fields` and `using`, on to Django.
 
 ## 0.1.0 - 2026-09-25
