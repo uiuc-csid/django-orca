@@ -1,18 +1,25 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
-from typing import Type
+from typing import TYPE_CHECKING, Type
 
 from django.conf import settings
 from django.contrib.auth.mixins import AccessMixin
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
 from django.http import Http404
+from django.views import View
 
 from django_orca.roles import Role
 from django_orca.shortcuts import has_role
 
+if TYPE_CHECKING:
+    # The mixins are used with a view, which provides request and dispatch().
+    _ViewBase = View
+else:
+    _ViewBase = object
 
-class ObjectPermissionRequiredMixin(AccessMixin):
+
+class ObjectPermissionRequiredMixin(AccessMixin, _ViewBase):
     """
     PermissionMixin
 
@@ -65,7 +72,7 @@ class ObjectPermissionRequiredMixin(AccessMixin):
             return super().dispatch(request, *args, **kwargs)
 
 
-class ObjectRoleRequiredMixin(AccessMixin):
+class ObjectRoleRequiredMixin(AccessMixin, _ViewBase):
     login_url = settings.LOGIN_URL
     role_required: Type[Role]
     return_404 = False

@@ -71,6 +71,11 @@ module = [
 ]
 ignore_errors = true
 
+# factory_boy re-exports Faker, SubFactory etc. from its package root.
+[[tool.mypy.overrides]]
+module = ["factory", "factory.*"]
+implicit_reexport = true
+
 [tool.django-stubs]
 django_settings_module = "tests.example_project.settings"
 

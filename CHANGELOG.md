@@ -11,6 +11,9 @@ All notable changes to django-orca. The format follows [Keep a Changelog](https:
 
 ### Changed
 
+- Querysets are built with each model's default manager instead of `objects`, so models whose manager has another name work.
+- A `permission_parents` entry that isn't a relation to another model raises `ImproperlyConfigured` with the field name.
+- Development only: mypy passes with no errors and runs in the hk checks, and the test factories are typed.
 - Development only: git hooks and linting run through hk (`mise run lint`, `mise run fix`) instead of pre-commit, and code is formatted with ruff instead of black. Markdown is linted with markdownlint-cli2.
 
 ### Removed
@@ -20,6 +23,7 @@ All notable changes to django-orca. The format follows [Keep a Changelog](https:
 ### Fixed
 
 - Roles work with objects whose primary key isn't a 32-bit integer, including `BigAutoField` values above 2,147,483,647, UUIDs and text keys. Models whose primary key isn't named `id` also have their roles removed when they're deleted, and custom user models with a differently named primary key work with `UserRole` natural keys.
+- `UserRole.natural_key()` no longer fails for roles that aren't attached to an object.
 - Saving an existing `UserRole` again no longer fails with `IntegrityError`. Its permissions are only created when the role is first saved. `UserRole.save()` also passes its arguments, such as `update_fields` and `using`, on to Django.
 
 ## 0.1.0 - 2026-09-25

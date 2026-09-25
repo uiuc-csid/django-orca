@@ -110,7 +110,8 @@ class UserRole(models.Model):
         RolePermission.objects.using(self._state.db).bulk_create(role_instances)
 
     def natural_key(self):
-        return (self.user.pk, self.role_class, self.content_type.id, self.object_id)
+        # content_type is None for roles that aren't attached to an object.
+        return (self.user.pk, self.role_class, self.content_type_id, self.object_id)
 
     @property
     def role(self):
@@ -168,7 +169,7 @@ class RolePermission(models.Model):
     def natural_key(self):
         return (self.role.id, self.permission.id)
 
-    natural_key.dependencies = ["django_orca.userrole"]
+    natural_key.dependencies = ["django_orca.userrole"]  # type: ignore[attr-defined]
 
 
 class RoleMixin:

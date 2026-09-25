@@ -81,7 +81,7 @@ def get_qs_for_user(
         role_name = get_roleclass(role_class).get_class_name()
         role_query = role_query.filter(role_class=role_name)
 
-    qs = model.objects.filter(pk__in=object_ids(role_query, model))
+    qs = model._default_manager.filter(pk__in=object_ids(role_query, model))
     return qs
 
 
@@ -90,9 +90,9 @@ def get_objects_for_role(
     role_class: Type[Role],
     permission: str,
     userrole_qs,
-    parent_model: Optional[T] = None,
+    parent_model: ModelQ = None,
 ) -> models.QuerySet[T]:
-    qs = model.objects.none()
+    qs = model._default_manager.none()
     named_role_qs = userrole_qs.filter(
         role_class=get_roleclass(role_class).get_class_name()
     )
@@ -105,7 +105,9 @@ def get_objects_for_role(
         if parent_model:
             ct_objs = ContentType.objects.get_for_models(model, parent_model).values()
             local_role_qs = named_role_qs.filter(content_type__in=ct_objs)
-            path_to_id = model._meta.get_ancestor_link(parent_model).attname
+            ancestor_link = model._meta.get_ancestor_link(parent_model)
+            assert ancestor_link is not None, "parent_model must be a parent of model"
+            path_to_id = ancestor_link.attname
             filter_kwargs = {
                 f"{path_to_id}__in": object_ids(local_role_qs, parent_model)
             }
@@ -113,7 +115,7 @@ def get_objects_for_role(
             ct_obj = ContentType.objects.get_for_model(model)
             local_role_qs = named_role_qs.filter(content_type=ct_obj)
             filter_kwargs = {"pk__in": object_ids(local_role_qs, model)}
-        qs |= model.objects.filter(**filter_kwargs)
+        qs |= model._default_manager.filter(**filter_kwargs)
 
     if permission in role_class.inherit_allow:
         parents = registry.get_perm_inheritance_tree(model)
@@ -123,13 +125,13 @@ def get_objects_for_role(
                 parent_ct = ContentType.objects.get_for_model(parent)
                 local_role_qs = named_role_qs.filter(content_type=parent_ct)
                 kwargs = {f"{attname}__in": object_ids(local_role_qs, parent)}
-                qs |= model.objects.filter(**kwargs)
+                qs |= model._default_manager.filter(**kwargs)
 
     return qs
 
 
 def get_perm_qs_for_user(user, model: Type[T], permission: str) -> models.QuerySet[T]:
-    qs = model.objects.none()
+    qs = model._default_manager.none()
     userroles = UserRole.objects.filter(user=user)
 
     for role in registry.get_roles_for_perm(permission):

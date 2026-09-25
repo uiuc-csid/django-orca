@@ -1,13 +1,18 @@
 import factory
-from django.conf import settings
 from factory.django import DjangoModelFactory
 
-from tests.example_project.main.models import Course, Department, HonorsCourse, School
+from tests.example_project.main.models import (
+    Course,
+    Department,
+    HonorsCourse,
+    School,
+    User,
+)
 
 
-class UserFactory(DjangoModelFactory):
+class UserFactory(DjangoModelFactory[User]):
     class Meta:
-        model = settings.AUTH_USER_MODEL
+        model = User
         django_get_or_create = ["username"]
 
     first_name = factory.Faker("first_name")
@@ -16,7 +21,7 @@ class UserFactory(DjangoModelFactory):
     username = factory.Faker("user_name")
 
 
-class SchoolFactory(DjangoModelFactory):
+class SchoolFactory(DjangoModelFactory[School]):
     class Meta:
         model = School
         django_get_or_create = ["name"]
@@ -24,7 +29,7 @@ class SchoolFactory(DjangoModelFactory):
     name = factory.Faker("word")
 
 
-class DepartmentFactory(DjangoModelFactory):
+class DepartmentFactory(DjangoModelFactory[Department]):
     class Meta:
         model = Department
         django_get_or_create = ["name"]
@@ -33,7 +38,7 @@ class DepartmentFactory(DjangoModelFactory):
     school = factory.SubFactory(SchoolFactory)
 
 
-class CourseFactory(DjangoModelFactory):
+class CourseFactory(DjangoModelFactory[Course]):
     class Meta:
         model = Course
         django_get_or_create = ["name"]

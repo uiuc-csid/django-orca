@@ -60,7 +60,7 @@ def test_perm_view_404(client: Client, user: User, course: Course):
 
 @pytest.mark.django_db
 def test_perm_view_department(client: Client, user: User, department_factory):
-    department: Department = department_factory()
+    department: Department = department_factory.create()
     user = User.objects.create(username="testowner")
     client.force_login(user)
 

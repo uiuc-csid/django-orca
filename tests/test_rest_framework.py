@@ -14,8 +14,8 @@ def filter_courses(filter_backend, user):
 
 @pytest.mark.django_db
 def test_filter_uses_view_permission_by_default(user: User, course_factory):
-    visible: Course = course_factory()
-    course_factory()
+    visible: Course = course_factory.create()
+    course_factory.create()
     user.assign_role(CourseViewer, visible)
 
     assert list(filter_courses(ObjectRolePermissionsFilter(), user)) == [visible]
@@ -23,8 +23,8 @@ def test_filter_uses_view_permission_by_default(user: User, course_factory):
 
 @pytest.mark.django_db
 def test_filter_uses_permission_name(user: User, course_factory):
-    viewed: Course = course_factory()
-    instructed: Course = course_factory()
+    viewed: Course = course_factory.create()
+    instructed: Course = course_factory.create()
     user.assign_role(CourseViewer, viewed)
     user.assign_role(CourseInstructor, instructed)
 

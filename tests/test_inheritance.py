@@ -8,9 +8,9 @@ from tests.example_project.main.roles import CourseViewer, DepartmentOwner, Scho
 def test_single_hop_inherited_permissions(
     user: User, department: Department, course_factory
 ):
-    course1 = course_factory(department=department)
-    course2 = course_factory(department=department)
-    course3 = course_factory()
+    course1 = course_factory.create(department=department)
+    course2 = course_factory.create(department=department)
+    course3 = course_factory.create()
 
     # No permissions initially
     assert not user.has_perm("main.view_course", course1)
@@ -35,11 +35,11 @@ def test_single_hop_inherited_permissions(
 
 @pytest.mark.django_db
 def test_multiple_hop_inheritance(user_factory, course_factory):
-    user1: User = user_factory()
+    user1: User = user_factory.create()
 
-    course1: Course = course_factory()
-    course2: Course = course_factory(department=course1.department)
-    course3: Course = course_factory()
+    course1: Course = course_factory.create()
+    course2: Course = course_factory.create(department=course1.department)
+    course3: Course = course_factory.create()
 
     user1.assign_role(SchoolOwner, course1.department.school)
 

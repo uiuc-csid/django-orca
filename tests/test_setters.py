@@ -18,9 +18,9 @@ from tests.example_project.main.roles import (
 
 @pytest.mark.django_db
 def test_remove_roles(user: User, course_factory):
-    course1: Course = course_factory()
-    course2: Course = course_factory()
-    course3: Course = course_factory()
+    course1: Course = course_factory.create()
+    course2: Course = course_factory.create()
+    course3: Course = course_factory.create()
 
     user.assign_role(CourseOwner, course1)
     user.assign_role(CourseViewer, course1)
@@ -70,7 +70,7 @@ def test_assign_role_twice_is_idempotent(user: User, course: Course):
 
 @pytest.mark.django_db
 def test_unique_role_rejects_multiple_users(user_factory, course: Course):
-    users = [user_factory(username="a"), user_factory(username="b")]
+    users = [user_factory.create(username="a"), user_factory.create(username="b")]
     with pytest.raises(InvalidRoleAssignment):
         assign_roles(users, CourseInstructor, course)
     assert get_userroles(users).count() == 0
@@ -78,10 +78,10 @@ def test_unique_role_rejects_multiple_users(user_factory, course: Course):
 
 @pytest.mark.django_db
 def test_unique_role_rejects_second_user(user_factory, course_factory):
-    course1: Course = course_factory()
-    course2: Course = course_factory()
-    first = user_factory(username="first")
-    second = user_factory(username="second")
+    course1: Course = course_factory.create()
+    course2: Course = course_factory.create()
+    first = user_factory.create(username="first")
+    second = user_factory.create(username="second")
 
     assign_role(first, CourseInstructor, course1)
     with pytest.raises(InvalidRoleAssignment):

@@ -7,7 +7,7 @@ from tests.example_project.main.roles import CourseOwner, CourseViewer, Departme
 
 @pytest.mark.django_db
 def test_user_permissions(user_factory, course: Course, department: Department):
-    user1: User = user_factory()
+    user1: User = user_factory.create()
     perms = user1.get_user_permissions()
     assert len(perms) == 0
 
@@ -29,7 +29,7 @@ def test_user_permissions(user_factory, course: Course, department: Department):
     )
 
     # Note: permissions are cached so they should be cleared between checks
-    user2: User = user_factory()
+    user2: User = user_factory.create()
     perms = user2.get_user_permissions()
     assert len(perms) == 0
     assert user2.get_all_permissions() == user2.get_user_permissions()

@@ -19,7 +19,16 @@ ALLOW_MODE = 0
 DENY_MODE = 1
 
 
-# Get model of foreign key field with Model._meta.get_field("field_name").related_model
+def _parent_model(model: Type[Model], field) -> Type[Model]:
+    """Return the model that a "permission_parents" field of "model" points to."""
+    if not isinstance(field.related_model, type):
+        raise ImproperlyConfigured(
+            '"%s" in the permission_parents of "%s" must be a relation to '
+            "another model." % (field.name, model.__name__)
+        )
+    return field.related_model
+
+
 class OrcaRegistry:
     class RoleRegistry(Dict[str, Type[Role]]):
         def __contains__(self, item: Any) -> bool:
@@ -76,7 +85,7 @@ class OrcaRegistry:
                 if new_attname not in parents:
                     parents.update(
                         self._get_perm_inherits_tree(
-                            field.related_model, parents, new_attname
+                            _parent_model(curr, field), parents, new_attname
                         )
                     )
 
@@ -93,7 +102,7 @@ class OrcaRegistry:
                 attname = field.name
                 accessors.update(
                     self._get_perm_inherits_tree(
-                        field.related_model, accessors, attname
+                        _parent_model(model, field), accessors, attname
                     )
                 )
         return accessors
@@ -120,11 +129,6 @@ class OrcaRegistry:
 
         self.__validate(kls)
         self._registry[kls.get_class_name()] = kls
-        try:
-            del self.get_roles_for_perm
-            del self.get_inheritance_roles_for_perm
-        except AttributeError:
-            pass
         logger.debug("Registered role: %s", kls)
 
     @classmethod

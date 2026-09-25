@@ -13,17 +13,17 @@ from tests.example_project.main.roles import (
 
 @pytest.mark.django_db
 def test_get_users(user_factory, course_factory):
-    course1: Course = course_factory()
-    course2: Course = course_factory()
-    course3: Course = course_factory()
+    course1: Course = course_factory.create()
+    course2: Course = course_factory.create()
+    course3: Course = course_factory.create()
 
-    user1: User = user_factory()
+    user1: User = user_factory.create()
     user1.assign_role(CourseViewer, course1)
 
-    user2: User = user_factory()
+    user2: User = user_factory.create()
     user2.assign_role(CourseViewer, course1)
 
-    user3: User = user_factory()
+    user3: User = user_factory.create()
     user3.assign_role(CourseViewer, course2)
 
     assert len(get_users(CourseViewer)) == 3
@@ -36,9 +36,9 @@ def test_get_users(user_factory, course_factory):
 
 @pytest.mark.django_db
 def test_get_objects(user: User, department: Department, course_factory):
-    course1: Course = course_factory()
-    course2: Course = course_factory()
-    course3: Course = course_factory()
+    course1: Course = course_factory.create()
+    course2: Course = course_factory.create()
+    course3: Course = course_factory.create()
     assert len(user.get_objects()) == 0
 
     user.assign_role(CourseOwner, course1)
@@ -61,9 +61,9 @@ def test_get_objects(user: User, department: Department, course_factory):
 def test_get_objects_queries(
     user: User, department: Department, course_factory, django_assert_num_queries
 ):
-    course1: Course = course_factory()
-    course2: Course = course_factory()
-    course3: Course = course_factory()
+    course1: Course = course_factory.create()
+    course2: Course = course_factory.create()
+    course3: Course = course_factory.create()
 
     user.assign_role(CourseOwner, course1)
     user.assign_role(CourseOwner, course2)
@@ -83,9 +83,9 @@ def test_get_objects_queries(
 
 @pytest.mark.django_db
 def test_get_obj_qs(user: User, course_factory):
-    course1: Course = course_factory()
-    course2: Course = course_factory()
-    course3: Course = course_factory()
+    course1: Course = course_factory.create()
+    course2: Course = course_factory.create()
+    course3: Course = course_factory.create()
     assert user.get_objects_qs(model=Course).count() == 0
 
     user.assign_role(CourseOwner, course1)
@@ -98,8 +98,8 @@ def test_get_obj_qs(user: User, course_factory):
 
 @pytest.mark.django_db
 def test_get_userroles(user: User, course_factory):
-    course1: Course = course_factory()
-    course2: Course = course_factory()
+    course1: Course = course_factory.create()
+    course2: Course = course_factory.create()
     assert get_userroles(user=user).count() == 0
 
     user.assign_role(CourseOwner, course1)
@@ -112,12 +112,12 @@ def test_get_userroles(user: User, course_factory):
 
 @pytest.mark.django_db
 def test_get_perm_qs_for_user(user_factory, course_factory):
-    user1: User = user_factory()
-    user2: User = user_factory()
+    user1: User = user_factory.create()
+    user2: User = user_factory.create()
 
-    course1: Course = course_factory()
-    course2: Course = course_factory(department=course1.department)
-    course3: Course = course_factory()
+    course1: Course = course_factory.create()
+    course2: Course = course_factory.create(department=course1.department)
+    course3: Course = course_factory.create()
 
     user1.assign_role(SchoolOwner, course1.department.school)
     user2.assign_role(SchoolOwner, course3.department.school)

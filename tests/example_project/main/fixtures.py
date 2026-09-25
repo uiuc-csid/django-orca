@@ -17,6 +17,6 @@ class ExampleProjectDataBuilder(BaseDataBuilder):
         for department in departments:
             CourseFactory.create_batch(department=department, size=3)
 
-        dept_owner = UserFactory()
+        dept_owner = UserFactory.create()
         dept_owner.assign_role(DepartmentOwner, departments[0])
         dept_owner.assign_role(DepartmentOwner, departments[1])
