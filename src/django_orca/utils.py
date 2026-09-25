@@ -1,5 +1,6 @@
 import inspect
 import logging
+import time
 from typing import Optional, Type
 
 from django.core.cache.backends.base import BaseCache
@@ -61,8 +62,7 @@ def string_to_permission(perm):
 
     # Checking if the Permission instance
     # exists in the cache system.
-    prefix = get_config("CACHE_PREFIX_KEY", CACHE_KEY_PREFIX)
-    key = "{}-permission-{}".format(prefix, perm)
+    key = "{}-permission-{}".format(cache_prefix(), perm)
     perm_obj: Optional[Permission] = orca_cache().get(key)
 
     # If not, creates the query to
@@ -213,9 +213,35 @@ def orca_cache() -> BaseCache:
     """
     from django.core.cache import caches
 
-    return caches[
-        get_config("CACHE", "default")
-    ]  # TODO: This will fully clear the cache. Might not be what we want. Can we scope this?
+    return caches[get_config("CACHE", "default")]
+
+
+def _generation_key() -> str:
+    return "{}-generation".format(get_config("CACHE_PREFIX_KEY", CACHE_KEY_PREFIX))
+
+
+def cache_prefix() -> str:
+    """
+    Prefix for every orca cache key. It includes a generation number so
+    that bumping the generation invalidates all orca keys at once.
+    """
+    prefix = get_config("CACHE_PREFIX_KEY", CACHE_KEY_PREFIX)
+    # A missing generation starts from the current time rather than 1 so
+    # that an evicted counter can't bring back keys from an old generation.
+    generation = orca_cache().get_or_set(_generation_key(), time.time_ns, timeout=None)
+    return "{}-{}".format(prefix, generation)
+
+
+def clear_cache():
+    """
+    Invalidate every orca cache key without touching the rest of the cache.
+    Stale keys are no longer read and expire through the cache's timeout.
+    """
+    cache = orca_cache()
+    try:
+        cache.incr(_generation_key())
+    except ValueError:
+        cache.set(_generation_key(), time.time_ns(), timeout=None)
 
 
 def generate_cache_key(user, obj, any_object):
@@ -232,8 +258,7 @@ def generate_cache_key(user, obj, any_object):
         str_key += "any"
 
     key.update(str_key.encode("utf-8"))
-    prefix = get_config("CACHE_PREFIX_KEY", CACHE_KEY_PREFIX)
-    return "{}-userrole-{}".format(prefix, key.hexdigest())
+    return "{}-userrole-{}".format(cache_prefix(), key.hexdigest())
 
 
 def delete_from_cache(user, obj):

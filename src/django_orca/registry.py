@@ -10,7 +10,7 @@ from django.utils.module_loading import autodiscover_modules, module_has_submodu
 
 from .exceptions import AlreadyRegistered, ImproperlyConfigured
 from .roles import Role
-from .utils import is_role, orca_cache
+from .utils import clear_cache, is_role
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +44,7 @@ class OrcaRegistry:
     def __init__(self, name="django_orca"):
         self._registry = OrcaRegistry.RoleRegistry()
         self.name = name
-        orca_cache().clear()
+        clear_cache()
 
     @property
     def roles_map(self):

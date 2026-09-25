@@ -6,7 +6,7 @@ A role-based access control backend for django based on [django-improved-permiss
 
 ## To Do
 
-- [ ] Add separate cache so that role cache invalidation does not clear everything
+- [x] Add separate cache so that role cache invalidation does not clear everything
 - [ ] Clean up unused shortcuts etc...
 - [ ] Standardize queryset fetching methods
 - [ ] Remove deny mode
