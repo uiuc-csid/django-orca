@@ -2,8 +2,8 @@ import pytest
 from django.test import Client
 from django.urls import reverse
 
-from ..models import Course, Department, User
-from ..roles import CourseOwner, DepartmentOwner
+from tests.example_project.main.models import Course, Department, User
+from tests.example_project.main.roles import CourseOwner, DepartmentOwner
 
 
 @pytest.mark.django_db

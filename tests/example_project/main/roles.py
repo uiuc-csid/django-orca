@@ -59,12 +59,16 @@ class Superuser(Role):
         "main.view_course",
         "main.change_course",
         "main.delete_course",
-        "main.view_department" "main.change_department" "main.delete_department",
+        "main.view_department",
+        "main.change_department",
+        "main.delete_department",
     ]
 
     inherit_allow = [
         "main.view_course",
         "main.change_course",
         "main.delete_course",
-        "main.view_department" "main.change_department" "main.delete_department",
+        "main.view_department",
+        "main.change_department",
+        "main.delete_department",
     ]

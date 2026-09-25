@@ -1,7 +1,7 @@
 import pytest
 
-from ..models import Course, Department, User
-from ..roles import CourseViewer, DepartmentOwner, SchoolOwner
+from tests.example_project.main.models import Course, Department, User
+from tests.example_project.main.roles import CourseViewer, DepartmentOwner, SchoolOwner
 
 
 @pytest.mark.django_db

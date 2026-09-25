@@ -2,7 +2,7 @@ import factory
 from django.conf import settings
 from factory.django import DjangoModelFactory
 
-from ..models import Course, Department, HonorsCourse, School
+from tests.example_project.main.models import Course, Department, HonorsCourse, School
 
 
 class UserFactory(DjangoModelFactory):

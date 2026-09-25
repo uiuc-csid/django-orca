@@ -1,7 +1,7 @@
 from heavy_water import BaseDataBuilder
 
-from example_project.main.roles import DepartmentOwner
-from example_project.main.tests.factories import (
+from tests.example_project.main.roles import DepartmentOwner
+from tests.factories import (
     CourseFactory,
     DepartmentFactory,
     UserFactory,

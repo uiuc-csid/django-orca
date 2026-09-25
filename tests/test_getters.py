@@ -1,9 +1,14 @@
 import pytest
+
 from django_orca.auth.getters import get_perm_qs_for_user
 from django_orca.shortcuts import get_userroles, get_users
-
-from ..models import Course, Department, User
-from ..roles import CourseOwner, CourseViewer, DepartmentOwner, SchoolOwner
+from tests.example_project.main.models import Course, Department, User
+from tests.example_project.main.roles import (
+    CourseOwner,
+    CourseViewer,
+    DepartmentOwner,
+    SchoolOwner,
+)
 
 
 @pytest.mark.django_db

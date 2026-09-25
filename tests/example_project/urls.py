@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path
 
-from example_project.main.views import (
+from tests.example_project.main.views import (
     CourseDetailView,
     CourseDetailView404,
     CourseOwnerDetailView,

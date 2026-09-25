@@ -1,9 +1,9 @@
 import pytest
 from django.contrib.auth.models import AnonymousUser
-from django_orca.shortcuts import has_permission, has_role
 
-from ..models import Course, User
-from ..roles import CourseOwner, CourseViewer
+from django_orca.shortcuts import has_permission, has_role
+from tests.example_project.main.models import Course, User
+from tests.example_project.main.roles import CourseOwner, CourseViewer
 
 
 @pytest.mark.django_db

@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import List
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 
 # Quick-start development settings - unsuitable for production
@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     "django_migration_linter",
     "heavy_water",
     "django_orca",
-    "example_project.main",
+    "tests.example_project.main",
 ]
 
 MIDDLEWARE = [
@@ -56,12 +56,12 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = "example_project.urls"
+ROOT_URLCONF = "tests.example_project.urls"
 
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "example_project" / "templates"],
+        "DIRS": [BASE_DIR / "tests" / "example_project" / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -74,7 +74,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "example_project.wsgi.application"
+WSGI_APPLICATION = "tests.example_project.wsgi.application"
 
 AUTH_USER_MODEL = "main.User"
 

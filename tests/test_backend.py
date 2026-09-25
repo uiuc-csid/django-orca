@@ -1,8 +1,8 @@
 import pytest
-from django_orca.shortcuts import get_userroles
 
-from ..models import Course, Department, User
-from ..roles import CourseOwner, CourseViewer, DepartmentOwner
+from django_orca.shortcuts import get_userroles
+from tests.example_project.main.models import Course, Department, User
+from tests.example_project.main.roles import CourseOwner, CourseViewer, DepartmentOwner
 
 
 @pytest.mark.django_db

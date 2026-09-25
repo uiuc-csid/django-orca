@@ -1,0 +1,114 @@
+[settings]
+# Needed for [deps].
+experimental = true
+python.uv_venv_auto = "create|source"
+python.uv_venv_create_args = ['--seed']
+
+[tools]
+uv = "0.11"
+hk = "2"
+# Major 4: hk's pinact builtin supports v3 and v4.
+pinact = "4"
+
+# Run `uv sync` before `mise run` / `mise x` whenever pyproject.toml or uv.lock
+# changes, or .venv is missing.
+[deps.uv]
+auto = true
+
+[env]
+_.python.venv = { path = ".venv", create = false }
+HK_MISE = 1
+
+[hooks]
+# Automatically install/update hooks when tools are installed
+postinstall = "hk install --mise"
+
+[tasks.setup]
+description = "Set up a development environment: install dependencies and git hooks"
+depends = ["sync", "hooks"]
+
+[tasks.sync]
+description = "Install the package and dev dependencies into .venv"
+run = "uv sync"
+
+[tasks.hooks]
+description = "Install the hk pre-commit hook"
+run = "hk install --mise"
+
+[tasks.lint]
+description = "Run all checks: ruff lint, ruff format, mypy, uv lock"
+run = "hk check --all"
+
+[tasks.fix]
+description = "Apply ruff fixes and formatting, and relock"
+run = "hk fix --all"
+
+[tasks.test]
+description = "Run the test suite"
+run = "uv run pytest"
+
+[tasks.coverage]
+description = "Run the tests with line and branch coverage, failing below 100%"
+run = [
+  "uv run coverage run -m pytest",
+  # coverage.xml is what CI uploads to Codecov.
+  "uv run coverage xml --fail-under=0 --quiet",
+  "uv run coverage report",
+]
+
+[tasks.test-django]
+description = "Run the tests against another Django version: DJANGO=5.2 mise run test-django"
+run = [
+  "uv sync --locked",
+  'uv pip install --python "${UV_PROJECT_ENVIRONMENT:-.venv}" "django~=${DJANGO:?set DJANGO, e.g. DJANGO=5.2}.0"',
+  "uv run --no-sync pytest",
+]
+
+[tasks.typecheck]
+description = "Type check with mypy"
+run = "uv run mypy"
+
+[tasks.build]
+description = "Build sdist and wheel"
+run = "uv build"
+
+[tasks.publish]
+description = "Upload dist/ to PyPI (uses trusted publishing in GitHub Actions)"
+run = "uv publish"
+
+[tasks.bump]
+description = "Bump the version, date the changelog, commit, and tag: mise run bump [major|minor|patch]"
+usage = 'arg "[part]" help="Which part of the version to bump" default="patch" { choices "major" "minor" "patch" }'
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+
+part="${usage_part:-patch}"
+
+# The tag must point at the code being released, so nothing tracked may be uncommitted.
+if ! git diff --quiet HEAD; then
+  echo "There are uncommitted changes; commit or stash them before releasing." >&2
+  exit 1
+fi
+if ! grep -qx "## Unreleased" CHANGELOG.md; then
+  echo "CHANGELOG.md has no '## Unreleased' section to release." >&2
+  exit 1
+fi
+
+version="$(uv version --bump "$part" --dry-run --short)"
+tag="v$version"
+if git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+  echo "Tag $tag already exists." >&2
+  exit 1
+fi
+
+uv version --bump "$part"
+# Keep an empty Unreleased section, and put this release's changes under it.
+awk -v heading="## $version - $(date +%F)" '
+  { print }
+  $0 == "## Unreleased" && !done { print ""; print heading; done = 1 }
+' CHANGELOG.md > CHANGELOG.md.tmp && mv CHANGELOG.md.tmp CHANGELOG.md
+git commit -m "chore: bump version to $version" -- pyproject.toml uv.lock CHANGELOG.md
+git tag -a "$tag" -m "$tag"
+echo "Tagged $tag. Push with: git push --follow-tags"
+'''

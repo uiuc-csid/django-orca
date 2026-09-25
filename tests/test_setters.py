@@ -1,9 +1,9 @@
 import pytest
+
 from django_orca.exceptions import InvalidRoleAssignment
 from django_orca.shortcuts import assign_role, get_userroles, remove_role
-
-from ..models import Course, User
-from ..roles import CourseOwner, CourseViewer, Superuser
+from tests.example_project.main.models import Course, User
+from tests.example_project.main.roles import CourseOwner, CourseViewer, Superuser
 
 
 @pytest.mark.django_db

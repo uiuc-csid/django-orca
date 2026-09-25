@@ -1,7 +1,7 @@
 import pytest  # noqa: F401
 from pytest_factoryboy import register
 
-from .factories import (
+from tests.factories import (
     CourseFactory,
     DepartmentFactory,
     HonorsCourseFactory,
