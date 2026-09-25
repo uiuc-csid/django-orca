@@ -49,3 +49,10 @@ def test_limited_permission_granting(user: User, course: Course):
     user.assign_role(CourseViewer, course)
     assert user.has_perm("main.view_course", course)
     assert not user.has_perm("main.change_course", course)
+
+
+@pytest.mark.django_db
+def test_permission_without_object(user: User, course: Course):
+    user.assign_role(CourseOwner, obj=course)
+    # Checks without an object are not supported, so they are always denied.
+    assert not has_permission(user, "main.view_course")

@@ -1,9 +1,19 @@
 import pytest
 
 from django_orca.exceptions import InvalidRoleAssignment
-from django_orca.shortcuts import assign_role, get_userroles, remove_role
+from django_orca.shortcuts import (
+    assign_role,
+    assign_roles,
+    get_userroles,
+    remove_role,
+)
 from tests.example_project.main.models import Course, User
-from tests.example_project.main.roles import CourseOwner, CourseViewer, Superuser
+from tests.example_project.main.roles import (
+    CourseInstructor,
+    CourseOwner,
+    CourseViewer,
+    Superuser,
+)
 
 
 @pytest.mark.django_db
@@ -49,3 +59,51 @@ def test_assign_roles(user, course):
 
     with pytest.raises(InvalidRoleAssignment):
         assign_role(user, Superuser, course)
+
+
+@pytest.mark.django_db
+def test_assign_role_twice_is_idempotent(user: User, course: Course):
+    assign_role(user, CourseOwner, course)
+    assign_role(user, CourseOwner, course)
+    assert get_userroles(user).count() == 1
+
+
+@pytest.mark.django_db
+def test_unique_role_rejects_multiple_users(user_factory, course: Course):
+    users = [user_factory(username="a"), user_factory(username="b")]
+    with pytest.raises(InvalidRoleAssignment):
+        assign_roles(users, CourseInstructor, course)
+    assert get_userroles(users).count() == 0
+
+
+@pytest.mark.django_db
+def test_unique_role_rejects_second_user(user_factory, course_factory):
+    course1: Course = course_factory()
+    course2: Course = course_factory()
+    first = user_factory(username="first")
+    second = user_factory(username="second")
+
+    assign_role(first, CourseInstructor, course1)
+    with pytest.raises(InvalidRoleAssignment):
+        assign_role(second, CourseInstructor, course1)
+
+    # Uniqueness is per object.
+    assign_role(second, CourseInstructor, course2)
+    assert get_userroles(second).count() == 1
+
+
+@pytest.mark.django_db
+def test_unique_together_rejects_second_role(monkeypatch, user: User, course: Course):
+    monkeypatch.setattr(Course.RoleOptions, "unique_together", True, raising=False)
+
+    assign_role(user, CourseViewer, course)
+    with pytest.raises(InvalidRoleAssignment):
+        assign_role(user, CourseOwner, course)
+    assert get_userroles(user).count() == 1
+
+
+@pytest.mark.django_db
+def test_assign_all_models_role(user: User):
+    assign_role(user, Superuser)
+    assert user.has_role(Superuser)
+    assert get_userroles(user, role_class=Superuser).get().object_id is None

@@ -72,3 +72,10 @@ class Superuser(Role):
         "main.change_department",
         "main.delete_department",
     ]
+
+
+class CourseInstructor(Role):
+    verbose_name = "Course Instructor"
+    models = ["main.Course"]
+    allow = ["main.change_course"]
+    unique = True

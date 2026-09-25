@@ -34,6 +34,7 @@ dev = [
     "nplusone",
     "django-heavy-water>=0.3.0",
     "ruff",
+    "djangorestframework>=3.18.1",
 ]
 
 [build-system]
