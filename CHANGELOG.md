@@ -13,10 +13,13 @@ All notable changes to django-orca. The format follows [Keep a Changelog](https:
 
 ### Added
 
+- The package includes a `py.typed` marker, so type checkers use django-orca's type hints.
 - Roles with `all_models = True` work. They're assigned without an object and grant their `allow` permissions on every object of the models those permissions belong to, including subclasses of those models. They also grant them for `has_perm()` without an object. Previously they could be assigned but granted nothing.
 
 ### Changed
 
+- **Django 4.2 or later is required.** Django 4.0 and 4.1 are no longer supported. The package metadata now lists the supported Python and Django versions, and links to the repository, issues and changelog.
+- Development only: CI runs ruff, ruff format and mypy, and runs the tests on Python 3.10–3.14 with Django 4.2, 5.2 and 6.1. Coverage is uploaded to Codecov with OIDC, and the GitHub Actions are updated to their current versions. hk also checks the workflows with actionlint.
 - Roles with `all_models = True` no longer need `inherit_allow` or `inherit_deny`, and their `allow` list is no longer cleared when they also define `models`.
 - The cleanup handler that removes roles when their object is deleted is only connected to models listed in roles and their subclasses, instead of every model in the project. Other models can be deleted in bulk again, which Django can't do for models with a `post_delete` receiver. It also removes an object's roles in one query instead of one per role.
 - Querysets are built with each model's default manager instead of `objects`, so models whose manager has another name work.

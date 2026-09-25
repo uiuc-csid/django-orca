@@ -8,8 +8,34 @@ authors = [{ name = "Josh Asplund", email = "asplund3@illinois.edu" }]
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "Django>4.0",
+    "Django>=4.2",
 ]
+keywords = ["django", "permissions", "roles", "rbac", "authorization"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Web Environment",
+    "Framework :: Django",
+    "Framework :: Django :: 4.2",
+    "Framework :: Django :: 5.2",
+    "Framework :: Django :: 6.1",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Security",
+    "Typing :: Typed",
+]
+
+[project.urls]
+Homepage = "https://github.com/uiuc-csid/django-orca"
+Repository = "https://github.com/uiuc-csid/django-orca"
+Issues = "https://github.com/uiuc-csid/django-orca/issues"
+Changelog = "https://github.com/uiuc-csid/django-orca/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 drf = ["djangorestframework>=3.13.0,<4"]

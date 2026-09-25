@@ -10,6 +10,7 @@ hk = "2"
 # Major 4: hk's pinact builtin supports v3 and v4.
 pinact = "4"
 "npm:markdownlint-cli2" = "0"
+actionlint = "1"
 
 # Run `uv sync` before `mise run` / `mise x` whenever pyproject.toml or uv.lock
 # changes, or .venv is missing.

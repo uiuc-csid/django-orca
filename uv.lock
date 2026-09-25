@@ -379,7 +379,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "django", specifier = ">4.0" },
+    { name = "django", specifier = ">=4.2" },
     { name = "djangorestframework", marker = "extra == 'drf'", specifier = ">=3.13.0,<4" },
 ]
 provides-extras = ["drf"]

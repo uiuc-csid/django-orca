@@ -6,8 +6,6 @@ A role-based access control backend for django based on [django-improved-permiss
 
 ## To Do
 
-### Bugs
-
 ### Design
 
 - [ ] Remove deny mode. `deny`, `inherit_deny` and the `inherit` flag are validated but ignored by `has_perm`.
@@ -20,18 +18,15 @@ A role-based access control backend for django based on [django-improved-permiss
 - [ ] Stop registering Django's `Permission` model in the admin.
 - [ ] Accept model classes in `Role.models`, and raise `ImproperlyConfigured` for unknown model names.
 
-### Tooling
-
-- [ ] Run ruff and mypy in CI.
-- [ ] Test against a matrix of Python 3.10–3.14 and Django 4.2, 5.2 and 6.x.
-- [ ] Require Django 4.2 or later, and add classifiers and project URLs.
-- [ ] Remove ruff's `target-version`, so it follows `requires-python`.
-- [ ] Update the GitHub Actions to their current major versions (`checkout` and `codecov-action` are on v3).
-- [ ] Add a `py.typed` marker.
-- [ ] Remove or fix the `demo` task in `mise.toml`, which runs `tests.demo`.
-
 ### Done
 
+- [x] Run ruff and mypy in CI
+- [x] Test against Python 3.10–3.14 and Django 4.2, 5.2 and 6.1
+- [x] Require Django 4.2 or later, and add classifiers and project URLs
+- [x] Update the GitHub Actions
+- [x] Remove ruff's `target-version`
+- [x] Remove the broken `demo` task from `mise.toml`
+- [x] Add a `py.typed` marker
 - [x] Enable `ALL_MODELS` mode
 - [x] Sort rows before grouping them in `get_objects()`
 - [x] Remove the unused `RolePermission` rows
