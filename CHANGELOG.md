@@ -11,6 +11,7 @@ All notable changes to django-orca. The format follows [Keep a Changelog](https:
 
 ### Changed
 
+- The cleanup handler that removes roles when their object is deleted is only connected to models listed in roles and their subclasses, instead of every model in the project. Other models can be deleted in bulk again, which Django can't do for models with a `post_delete` receiver. It also removes an object's roles in one query instead of one per role.
 - Querysets are built with each model's default manager instead of `objects`, so models whose manager has another name work.
 - A `permission_parents` entry that isn't a relation to another model raises `ImproperlyConfigured` with the field name.
 - Development only: mypy passes with no errors and runs in the hk checks, and the test factories are typed.

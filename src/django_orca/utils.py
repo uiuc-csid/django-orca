@@ -128,31 +128,36 @@ def is_unique_together(model):
 
 def cleanup_handler(sender, instance, **kwargs):  # pylint: disable=unused-argument
     """
-    This function is attached to the post_delete signal of all models of Django. Used to remove useless role instances and permissions.
+    Delete the roles attached to "instance". Connected to the post_delete
+    signal of every model that roles can be attached to.
     """
     from django.contrib.contenttypes.models import ContentType
 
     from .models import UserRole
 
     ct_obj = ContentType.objects.get_for_model(instance)
-    ur_list = UserRole.objects.filter(content_type=ct_obj.id, object_id=instance.pk)
-
-    for ur_obj in ur_list:
-        ur_obj.delete()
+    UserRole.objects.filter(content_type=ct_obj.id, object_id=instance.pk).delete()
 
 
 def register_cleanup():
     """
-    Register the function "cleanup_handler" to all models in the project.
+    Connect "cleanup_handler" to the models listed in registered roles, and
+    to their subclasses. Other models are left alone, because Django can't
+    delete a model's rows in bulk while it has a post_delete receiver.
     """
     from django.apps import apps
     from django.db.models.signals import post_delete
 
-    from .models import RolePermission, UserRole
+    from .registry import registry
 
-    ignore = [UserRole, RolePermission]
+    role_models = {
+        model
+        for role in registry.roles_map.values()
+        if not role.all_models
+        for model in role.get_models()
+    }
     for model in apps.get_models():
-        if model not in ignore:
+        if any(issubclass(model, role_model) for role_model in role_models):
             post_delete.connect(cleanup_handler, sender=model, dispatch_uid=str(model))
 
 

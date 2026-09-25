@@ -54,3 +54,27 @@ def test_post_delete_handler(user: User, course: Course, department: Department)
     assert get_userroles(user).count() == 2
     course.delete()
     assert get_userroles(user).count() == 0
+
+
+def test_cleanup_handler_only_on_role_models():
+    from django.db.models.signals import post_delete
+
+    from tests.example_project.main.models import HonorsCourse, School
+
+    assert post_delete.has_listeners(Course)
+    assert post_delete.has_listeners(School)
+    # Subclasses of role models can have roles too.
+    assert post_delete.has_listeners(HonorsCourse)
+    # No role lists users, so their deletes stay fast.
+    assert not post_delete.has_listeners(User)
+
+
+@pytest.mark.django_db
+def test_queryset_delete_removes_roles(user: User, course_factory):
+    courses = [course_factory.create(), course_factory.create()]
+    for course in courses:
+        user.assign_role(CourseOwner, course)
+
+    Course.objects.filter(pk__in=[course.pk for course in courses]).delete()
+
+    assert get_userroles(user).count() == 0
