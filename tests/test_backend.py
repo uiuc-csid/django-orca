@@ -78,3 +78,40 @@ def test_queryset_delete_removes_roles(user: User, course_factory):
     Course.objects.filter(pk__in=[course.pk for course in courses]).delete()
 
     assert get_userroles(user).count() == 0
+
+
+@pytest.mark.django_db
+def test_user_permissions_are_strings(user: User, course: Course):
+    user.assign_role(CourseViewer, course)
+
+    assert user.get_user_permissions(course) == {"main.view_course"}
+    assert user.get_user_permissions() == {"main.view_course"}
+
+
+@pytest.mark.django_db
+def test_user_permissions_include_inherited(user: User, course: Course):
+    user.assign_role(DepartmentOwner, course.department)
+
+    assert user.get_user_permissions(course) == {
+        "main.view_course",
+        "main.change_course",
+    }
+    assert user.get_user_permissions(course.department) == {"main.view_department"}
+
+
+@pytest.mark.django_db
+def test_user_permissions_match_has_perm(user: User, course_factory):
+    course: Course = course_factory.create()
+    other: Course = course_factory.create()
+    user.assign_role(CourseOwner, course)
+    user.assign_role(DepartmentOwner, other.department)
+
+    for obj in [course, other, course.department, other.department]:
+        perms = user.get_user_permissions(obj)
+        candidates = {
+            "main.view_course",
+            "main.change_course",
+            "main.delete_course",
+            "main.view_department",
+        }
+        assert perms == {perm for perm in candidates if user.has_perm(perm, obj)}

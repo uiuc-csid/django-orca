@@ -6,15 +6,14 @@ from tests.example_project.main.roles import CourseOwner, CourseViewer, Superuse
 
 
 @pytest.mark.django_db
-def test_resaving_user_role_keeps_permissions(user: User, course: Course):
+def test_resaving_user_role(user: User, course: Course):
     user.assign_role(CourseOwner, course)
     user_role = UserRole.objects.get()
-    permissions = set(user_role.accesses.values_list("permission", "access"))
-    assert permissions
 
     user_role.save()
 
-    assert set(user_role.accesses.values_list("permission", "access")) == permissions
+    assert UserRole.objects.get() == user_role
+    assert user.has_perm("main.change_course", course)
 
 
 @pytest.mark.django_db

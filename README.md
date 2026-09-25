@@ -9,8 +9,6 @@ A role-based access control backend for django based on [django-improved-permiss
 ### Bugs
 
 - [ ] Enable `ALL_MODELS` mode. Roles with `all_models = True` can be assigned but grant nothing, and `get_objects()` crashes for users who have one.
-- [ ] Use one source of truth for permissions. `has_perm` reads the role classes and follows inheritance, but `get_user_permissions`/`get_all_permissions` read `RolePermission` rows saved at assignment time and ignore inheritance, so the two disagree.
-- [ ] `get_user_permissions`/`get_all_permissions` return `Permission` objects, but Django expects `"app_label.codename"` strings, so they mix badly with other backends.
 
 ### Design
 
@@ -37,6 +35,8 @@ A role-based access control backend for django based on [django-improved-permiss
 
 ### Done
 
+- [x] Remove the unused `RolePermission` rows
+- [x] Make `get_user_permissions`/`get_all_permissions` agree with `has_perm` and return strings
 - [x] Only attach the `post_delete` cleanup handler to models used by roles
 - [x] Fix the mypy errors
 - [x] Support large and non-integer primary keys

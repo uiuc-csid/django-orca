@@ -24,8 +24,9 @@ def has_role(user, role_class: RoleQ = None, obj=None) -> bool:
 def has_permission(user, permission, obj=None, any_object=False) -> bool:
     """
     Return True if the "user" has the "permission".
+    Inactive users have no permissions, as with Django's own backend.
     """
-    if isinstance(user, AnonymousUser):
+    if isinstance(user, AnonymousUser) or not user.is_active:
         return False
 
     # We do not support any_object yet

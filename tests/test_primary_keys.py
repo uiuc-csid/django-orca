@@ -20,8 +20,10 @@ def test_uuid_primary_key(user: User):
     assert list(get_qs_for_user(user, Project)) == [project]
     assert get_objects(user) == [project]
     assert list(get_users(ProjectOwner, project)) == [user]
-    # view_project and change_project.
-    assert len(user.get_user_permissions(project)) == 2
+    assert user.get_user_permissions(project) == {
+        "main.view_project",
+        "main.change_project",
+    }
 
 
 @pytest.mark.django_db

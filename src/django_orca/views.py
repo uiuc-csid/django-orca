@@ -102,8 +102,10 @@ class ObjectRoleRequiredMixin(AccessMixin, _ViewBase):
         )
 
     def has_permission(self):
-        return has_role(
-            self.request.user, self.get_role_required(), self.get_permission_object()
+        user = self.request.user
+        # Inactive users are denied, as they are for permission checks.
+        return user.is_active and has_role(
+            user, self.get_role_required(), self.get_permission_object()
         )
 
     def dispatch(self, request, *args, **kwargs):

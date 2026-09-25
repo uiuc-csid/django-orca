@@ -88,7 +88,7 @@ def remove_role(user, role_class=None, obj=None):
 
 def remove_roles(users_list, role_class=None, obj=None):
     """
-    Delete all RolePermission objects in the database referencing the followling role_class to the user.
+    Delete the UserRole objects of the users in "users_list", limited to "role_class" if it is provided.
     If "obj" is provided, only the instances refencing this object will be deleted.
     """
     query = get_userroles(users_list, role_class=role_class, obj=obj)

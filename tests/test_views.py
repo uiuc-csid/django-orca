@@ -71,3 +71,18 @@ def test_perm_view_department(client: Client, user: User, department_factory):
     user.assign_role(DepartmentOwner, department)
     response = client.get(url)
     assert response.status_code == 200
+
+
+@pytest.mark.django_db
+def test_role_view_denies_inactive_user(rf, user: User, course: Course):
+    from django.core.exceptions import PermissionDenied
+
+    from tests.example_project.main.views import CourseOwnerDetailView
+
+    user.assign_role(CourseOwner, course)
+    user.is_active = False
+    request = rf.get("/")
+    request.user = user
+
+    with pytest.raises(PermissionDenied):
+        CourseOwnerDetailView.as_view()(request, pk=course.pk)

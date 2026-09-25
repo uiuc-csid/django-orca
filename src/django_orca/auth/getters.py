@@ -132,6 +132,9 @@ def get_objects_for_role(
 
 def get_perm_qs_for_user(user, model: Type[T], permission: str) -> models.QuerySet[T]:
     qs = model._default_manager.none()
+    # Inactive and anonymous users have no permissions.
+    if not user.is_active:
+        return qs
     userroles = UserRole.objects.filter(user=user)
 
     for role in registry.get_roles_for_perm(permission):

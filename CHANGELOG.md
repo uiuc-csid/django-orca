@@ -6,7 +6,9 @@ All notable changes to django-orca. The format follows [Keep a Changelog](https:
 
 ### Upgrading from 0.1.0
 
-- **Run `manage.py migrate`.** Migration `0003` changes `UserRole.object_id` from an integer to text. Existing values are kept.
+- **`get_user_permissions()` and `get_all_permissions()` return `"app_label.codename"` strings**, as Django expects, instead of `Permission` objects. For an object they now return exactly what `has_perm()` allows, including permissions inherited from parent objects, instead of the `RolePermission` rows saved when the role was assigned.
+- **`RolePermission`, `UserRole.permissions` and `UserRole.accesses` are removed.** Permissions come from the role classes, so the rows saved for each role weren't used. Code that reads them needs to use `has_perm()` or `get_user_permissions()` instead.
+- **Run `manage.py migrate`.** Migration `0003` changes `UserRole.object_id` from an integer to text, keeping existing values. Migration `0004` drops the `RolePermission` table.
 - **`UserRole.object_id` is now a string**, such as `"5"` instead of `5`. Code that reads it and compares it with an integer needs to convert it. Filtering with an integer, such as `UserRole.objects.filter(object_id=5)`, still works.
 
 ### Changed
@@ -19,10 +21,12 @@ All notable changes to django-orca. The format follows [Keep a Changelog](https:
 
 ### Removed
 
+- The `RolePermission` model and admin page, the `UserRole.permissions` field and `django_orca.utils.get_permissions_list`. Assigning a role no longer writes a row for every permission of its models.
 - Unused helpers in `django_orca.utils`: `get_from_cache`, `delete_from_cache`, `generate_cache_key`, `get_parents` and `inherit_check`. Nothing in django-orca called them, and permission inheritance is handled by the role registry. Code that imported them directly will need to stop.
 
 ### Fixed
 
+- Inactive users no longer get permissions from their roles. `has_perm()`, `get_user_permissions()`, `get_perm_qs_for_user()` (and so the REST framework filter) and `ObjectRoleRequiredMixin` deny them, as Django's own backend does. Their roles are kept, and `has_role()` still reports them.
 - Roles work with objects whose primary key isn't a 32-bit integer, including `BigAutoField` values above 2,147,483,647, UUIDs and text keys. Models whose primary key isn't named `id` also have their roles removed when they're deleted, and custom user models with a differently named primary key work with `UserRole` natural keys.
 - `UserRole.natural_key()` no longer fails for roles that aren't attached to an object.
 - Saving an existing `UserRole` again no longer fails with `IntegrityError`. Its permissions are only created when the role is first saved. `UserRole.save()` also passes its arguments, such as `update_fields` and `using`, on to Django.

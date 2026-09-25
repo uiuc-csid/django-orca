@@ -1,15 +1,11 @@
-from typing import List
-
 from django.conf import settings
-from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models
 
 from .exceptions import RoleNotFound
-from .roles import ALLOW_MODE
-from .utils import get_permissions_list, get_roleclass, permission_to_string
+from .utils import get_roleclass
 
 
 class UserRoleManager(models.Manager):
@@ -36,13 +32,6 @@ class UserRole(models.Model):
         on_delete=models.CASCADE,
         related_name="roles",
         verbose_name="Users",
-    )
-
-    permissions = models.ManyToManyField(
-        Permission,
-        through="RolePermission",
-        related_name="roles",
-        verbose_name="Permissions",
     )
 
     role_class = models.CharField(max_length=256)
@@ -75,39 +64,7 @@ class UserRole(models.Model):
 
     def save(self, *args, **kwargs):
         self.clean()
-        creating = self._state.adding
         super().save(*args, **kwargs)
-
-        # Permissions are only created along with the role, so saving an
-        # existing role again doesn't try to create them a second time.
-        if not creating:
-            return
-
-        # non-object roles does not have specific
-        # permissions auto created.
-        if self.role.all_models:
-            return
-
-        all_perms = get_permissions_list(self.role.get_models())
-
-        role_instances: List[RolePermission] = list()
-
-        for perm in all_perms:
-            perm_s = permission_to_string(perm)
-            if self.role.get_mode() == ALLOW_MODE:
-                role_instances.append(
-                    RolePermission(
-                        role=self, permission=perm, access=perm_s in self.role.allow
-                    )
-                )
-            else:
-                role_instances.append(
-                    RolePermission(
-                        role=self, permission=perm, access=perm_s not in self.role.deny
-                    )
-                )
-
-        RolePermission.objects.using(self._state.db).bulk_create(role_instances)
 
     def natural_key(self):
         # content_type is None for roles that aren't attached to an object.
@@ -129,47 +86,6 @@ class UserRole(models.Model):
                     "role_class": "This string representation does not exist as a Role class."
                 }
             )
-
-
-class RolePermissionManager(models.Manager):
-    def get_by_natural_key(self, role_id, permission_id):
-        return self.get(role__id=role_id, permission__id=permission_id)
-
-
-class RolePermission(models.Model):
-    """
-    RolePermission
-    This model has the function of performing
-    the m2m relation between the Permission
-    and the UserRole instances. It is possible
-    that different instances of the same UserRole
-    may have access to different permissions.
-    """
-
-    PERMISSION_CHOICES = ((True, "Allow"), (False, "Deny"))
-
-    access = models.BooleanField(choices=PERMISSION_CHOICES, default=True)
-
-    role = models.ForeignKey(
-        UserRole, on_delete=models.CASCADE, related_name="accesses"
-    )
-
-    permission = models.ForeignKey(
-        Permission, on_delete=models.CASCADE, related_name="accesses"
-    )
-
-    objects = RolePermissionManager()
-
-    class Meta:
-        unique_together = ("role", "permission")
-
-    def __str__(self) -> str:
-        return f"{self.role} -> {self.permission}, ({self.access})"
-
-    def natural_key(self):
-        return (self.role.id, self.permission.id)
-
-    natural_key.dependencies = ["django_orca.userrole"]  # type: ignore[attr-defined]
 
 
 class RoleMixin:

@@ -95,20 +95,6 @@ def permission_to_string(perm):
     return "%s.%s" % (app_label, codename)
 
 
-def get_permissions_list(models_list):
-    """
-    Given a list of Model instances or a Model classes, return all Permissions related to it.
-    """
-    from django.contrib.auth.models import Permission
-    from django.contrib.contenttypes.models import ContentType
-
-    ct_list = ContentType.objects.get_for_models(*models_list)
-    ct_ids = [ct.id for cls, ct in ct_list.items()]
-
-    # TODO: This performs multiple database queries
-    return list(Permission.objects.filter(content_type_id__in=ct_ids))
-
-
 def is_unique_together(model):
     """
     Return True if the model does not accept multiple roles attached to it using the user instance.
