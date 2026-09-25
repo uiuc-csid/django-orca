@@ -6,14 +6,41 @@ A role-based access control backend for django based on [django-improved-permiss
 
 ## To Do
 
-- [x] Add separate cache so that role cache invalidation does not clear everything
+### Bugs
+
+- [ ] Re-saving a `UserRole` raises `IntegrityError`, because `save()` recreates its `RolePermission` rows every time. It also drops the `save()` arguments.
+- [ ] Enable `ALL_MODELS` mode. Roles with `all_models = True` can be assigned but grant nothing, `get_objects()` crashes for users who have one, and `UserRole.natural_key()` fails for them.
+- [ ] Use one source of truth for permissions. `has_perm` reads the role classes and follows inheritance, but `get_user_permissions`/`get_all_permissions` read `RolePermission` rows saved at assignment time and ignore inheritance, so the two disagree.
+- [ ] Support large and non-integer primary keys. `UserRole.object_id` is a 32-bit `PositiveIntegerField`, and the code uses `obj.id` instead of `obj.pk`.
+- [ ] Only attach the `post_delete` cleanup handler to models used by roles. Attaching it to every model disables fast deletes across the whole project, and it deletes roles one query at a time.
+
+### Design
+
+- [ ] Remove deny mode. `deny`, `inherit_deny` and the `inherit` flag are validated but ignored by `has_perm`.
+- [ ] Create local role permissions cache like django does. The existing cache is only used by `string_to_permission`, which nothing calls.
 - [ ] Clean up unused shortcuts etc...
 - [ ] Standardize queryset fetching methods
-- [ ] Remove deny mode
-- [ ] Enable `ALL_MODELS` mode
 - [ ] Enable `ANY_OBJECT` mode
-- [ ] Create local role permissions cache like django does
-- [ ] Prefix role name in database with the app name
+- [ ] Prefix role name in database with the app name, so roles with the same class name in different apps don't collide
+- [ ] Redirect anonymous users to the login page in the view mixins (call `handle_no_permission()`), and share `get_permission_object` between them.
+- [ ] Stop registering Django's `Permission` model in the admin.
+- [ ] Accept model classes in `Role.models`, and raise `ImproperlyConfigured` for unknown model names.
+- [ ] Remove the leftover `del self.get_roles_for_perm` in `OrcaRegistry.register()`, and sort rows before grouping them in `get_objects()`.
+
+### Tooling
+
+- [ ] Run ruff and mypy in CI, and fix the existing mypy errors.
+- [ ] Test against a matrix of Python 3.10–3.14 and Django 4.2, 5.2 and 6.x.
+- [ ] Require Django 4.2 or later, and add classifiers and project URLs.
+- [ ] Remove ruff's `target-version`, so it follows `requires-python`.
+- [ ] Replace pre-commit and black with hk.
+- [ ] Update the GitHub Actions and pin them to commit SHAs.
+- [ ] Add a `py.typed` marker.
+- [ ] Remove or fix the `demo` task in `mise.toml`, which runs `tests.demo`.
+
+### Done
+
+- [x] Add separate cache so that role cache invalidation does not clear everything
 
 ## Questions
 
