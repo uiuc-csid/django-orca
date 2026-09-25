@@ -12,6 +12,9 @@ from .exceptions import ImproperlyConfigured, NotAllowed, ParentNotFound, RoleNo
 logger = logging.getLogger(__name__)
 
 CACHE_KEY_PREFIX = "orca"
+# Orca entries always expire, so keys retired by clear_cache() are freed
+# even when the cache itself has no default timeout.
+CACHE_TIMEOUT = 300
 
 
 def is_role(role_class):
@@ -76,7 +79,7 @@ def string_to_permission(perm):
             .filter(content_type__app_label=app, codename=codename)
             .get()
         )
-        orca_cache().set(key, perm_obj)
+        orca_cache().set(key, perm_obj, timeout=cache_timeout())
 
     return perm_obj
 
@@ -216,6 +219,10 @@ def orca_cache() -> BaseCache:
     return caches[get_config("CACHE", "default")]
 
 
+def cache_timeout() -> int:
+    return get_config("CACHE_TIMEOUT", CACHE_TIMEOUT)
+
+
 def _generation_key() -> str:
     return "{}-generation".format(get_config("CACHE_PREFIX_KEY", CACHE_KEY_PREFIX))
 
@@ -237,11 +244,15 @@ def clear_cache():
     Invalidate every orca cache key without touching the rest of the cache.
     Stale keys are no longer read and expire through the cache's timeout.
     """
+    # get + set rather than incr: some backends (database, file) rewrite the
+    # key with the default timeout on incr, which would let the counter expire.
+    # Concurrent clears may both write the same value, which still retires
+    # the old generation.
     cache = orca_cache()
-    try:
-        cache.incr(_generation_key())
-    except ValueError:
-        cache.set(_generation_key(), time.time_ns(), timeout=None)
+    generation = cache.get(_generation_key())
+    if generation is None:
+        generation = time.time_ns()
+    cache.set(_generation_key(), generation + 1, timeout=None)
 
 
 def generate_cache_key(user, obj, any_object):
@@ -319,6 +330,6 @@ def get_from_cache(user, obj, any_object):
         data = data[0] if data else ()
 
         # Set the data to the cache.
-        orca_cache().set(key, data)
+        orca_cache().set(key, data, timeout=cache_timeout())
 
     return data
