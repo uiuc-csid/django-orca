@@ -7,7 +7,7 @@ from django.core.cache.backends.base import BaseCache
 
 from django_orca.roles import Role
 
-from .exceptions import ImproperlyConfigured, NotAllowed, ParentNotFound, RoleNotFound
+from .exceptions import ImproperlyConfigured, NotAllowed, RoleNotFound
 
 logger = logging.getLogger(__name__)
 
@@ -107,29 +107,6 @@ def get_permissions_list(models_list):
     return list(Permission.objects.filter(content_type_id__in=ct_ids))
 
 
-def get_parents(model):
-    """
-    Return the list of instances refered as "parents" of a given model instance.
-    """
-    result = list()
-    options = getattr(model, "RoleOptions", None)
-    if options:
-        parents_list = getattr(options, "permission_parents", None)
-        if parents_list:
-            for parent in parents_list:
-                field = getattr(model, parent, False)
-                if field is False:
-                    # Field does not exist.
-                    raise ParentNotFound(
-                        'The field "%s" was not found in the '
-                        'model "%s".' % (parent, str(model))
-                    )
-                elif field is not None:
-                    # Only getting non-null parents.
-                    result.append(field)
-    return result
-
-
 def is_unique_together(model):
     """
     Return True if the model does not accept multiple roles attached to it using the user instance.
@@ -147,20 +124,6 @@ def is_unique_together(model):
     return False
 
 
-def inherit_check(role_s, permission):
-    """
-    Check if the role class has the following permission in inherit mode.
-    """
-    from .roles import ALLOW_MODE
-
-    role = get_roleclass(role_s)
-    if role.inherit is True:
-        if role.get_inherit_mode() == ALLOW_MODE:
-            return True if permission in role.inherit_allow else False
-        return False if permission in role.inherit_deny else True
-    return False
-
-
 def cleanup_handler(sender, instance, **kwargs):  # pylint: disable=unused-argument
     """
     This function is attached to the post_delete signal of all models of Django. Used to remove useless role instances and permissions.
@@ -173,8 +136,6 @@ def cleanup_handler(sender, instance, **kwargs):  # pylint: disable=unused-argum
     ur_list = UserRole.objects.filter(content_type=ct_obj.id, object_id=instance.id)
 
     for ur_obj in ur_list:
-        # Cleaning the cache system.
-        delete_from_cache(ur_obj.user, instance)
         ur_obj.delete()
 
 
@@ -253,83 +214,3 @@ def clear_cache():
     if generation is None:
         generation = time.time_ns()
     cache.set(_generation_key(), generation + 1, timeout=None)
-
-
-def generate_cache_key(user, obj, any_object):
-    """
-    Generate a md5 digest based on the string representation of the user and the object passed via arguments.
-    """
-    from hashlib import md5
-
-    key = md5()
-    str_key = str(user.__class__) + str(user) + str(user.id)
-    if obj:
-        str_key += str(obj.__class__) + str(obj) + str(obj.id)
-    elif any_object:
-        str_key += "any"
-
-    key.update(str_key.encode("utf-8"))
-    return "{}-userrole-{}".format(cache_prefix(), key.hexdigest())
-
-
-def delete_from_cache(user, obj):
-    """
-    Delete all permissions data from the cache about the user and the object passed via arguments.
-    """
-    key = generate_cache_key(user, obj, any_object=False)
-    orca_cache().delete(key)
-
-    key = generate_cache_key(user, obj=None, any_object=True)
-    orca_cache().delete(key)
-
-
-def get_from_cache(user, obj, any_object):
-    """
-    Get all permissions data about the user and the object passed via arguments e store it in the Django cache system.
-    """
-    from django.contrib.contenttypes.models import ContentType
-
-    from .models import UserRole
-
-    # Key preparation.
-    key = generate_cache_key(user, obj, any_object)
-
-    # Check for the cached data.
-    data = orca_cache().get(key)
-    if data is None:
-        query = UserRole.objects.prefetch_related("accesses").filter(user=user)
-
-        # Filtering by object.
-        if obj:
-            ct_obj = ContentType.objects.get_for_model(obj)
-            query = query.filter(content_type=ct_obj.id).filter(object_id=obj.id)
-        elif not any_object:
-            query = query.filter(content_type__isnull=True).filter(
-                object_id__isnull=True
-            )
-
-        # Getting only the required values.
-        query = query.values_list(
-            "role_class", "accesses__permission", "accesses__access"
-        )
-
-        # Transform the query result into
-        # a dictionary.
-        data = dict()
-        for item in query:
-            perms_list = data.get(item[0], [])
-            if item[0] and item[1]:
-                perms_list.append((item[1], item[2]))
-            data[item[0]] = perms_list
-
-        # Ordering the tuple by their Role Ranking values.
-        data = sorted(data.items(), key=lambda role: get_roleclass(role[0]).ranking)
-
-        # Now, we get only the data from the
-        # first role class found.
-        data = data[0] if data else ()
-
-        # Set the data to the cache.
-        orca_cache().set(key, data, timeout=cache_timeout())
-
-    return data

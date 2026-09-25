@@ -7,7 +7,7 @@ from django_orca.roles import Role
 
 from ..exceptions import InvalidRoleAssignment
 from ..models import UserRole
-from ..utils import check_my_model, delete_from_cache, get_roleclass, is_unique_together
+from ..utils import check_my_model, get_roleclass, is_unique_together
 from .checkers import has_role
 from .getters import get_user_roles_strings, get_userroles, get_users
 
@@ -78,9 +78,6 @@ def assign_roles(users_list: List[AbstractBaseUser], role_class: Type[Role], obj
         else:
             UserRole.objects.get_or_create(role_class=role.get_class_name(), user=user)
 
-        # Cleaning the cache system.
-        delete_from_cache(user, obj)
-
 
 def remove_role(user, role_class=None, obj=None):
     """
@@ -95,10 +92,4 @@ def remove_roles(users_list, role_class=None, obj=None):
     If "obj" is provided, only the instances refencing this object will be deleted.
     """
     query = get_userroles(users_list, role_class=role_class, obj=obj)
-
-    # Cleaning the cache system.
-    for user in users_list:
-        delete_from_cache(user, obj)
-
-    # Cleaning the database.
     query.delete()

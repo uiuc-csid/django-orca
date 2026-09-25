@@ -4,6 +4,10 @@ All notable changes to django-orca. The format follows [Keep a Changelog](https:
 
 ## Unreleased
 
+### Removed
+
+- Unused helpers in `django_orca.utils`: `get_from_cache`, `delete_from_cache`, `generate_cache_key`, `get_parents` and `inherit_check`. Nothing in django-orca called them, and permission inheritance is handled by the role registry. Code that imported them directly will need to stop.
+
 ## 0.1.0 - 2026-09-25
 
 ### Changed
