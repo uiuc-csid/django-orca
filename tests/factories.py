@@ -13,41 +13,37 @@ from tests.example_project.main.models import (
 class UserFactory(DjangoModelFactory[User]):
     class Meta:
         model = User
-        django_get_or_create = ["username"]
 
     first_name = factory.Faker("first_name")
     last_name = factory.Faker("last_name")
     email = factory.Faker("email")
-    username = factory.Faker("user_name")
+    # Unique names, so every call creates a separate object.
+    username = factory.Sequence(lambda n: f"user-{n}")
 
 
 class SchoolFactory(DjangoModelFactory[School]):
     class Meta:
         model = School
-        django_get_or_create = ["name"]
 
-    name = factory.Faker("word")
+    name = factory.Sequence(lambda n: f"school-{n}")
 
 
 class DepartmentFactory(DjangoModelFactory[Department]):
     class Meta:
         model = Department
-        django_get_or_create = ["name"]
 
-    name = factory.Faker("word")
+    name = factory.Sequence(lambda n: f"department-{n}")
     school = factory.SubFactory(SchoolFactory)
 
 
 class CourseFactory(DjangoModelFactory[Course]):
     class Meta:
         model = Course
-        django_get_or_create = ["name"]
 
-    name = factory.Faker("word")
+    name = factory.Sequence(lambda n: f"course-{n}")
     department = factory.SubFactory(DepartmentFactory)
 
 
 class HonorsCourseFactory(CourseFactory):
     class Meta:
         model = HonorsCourse
-        django_get_or_create = ["name"]
