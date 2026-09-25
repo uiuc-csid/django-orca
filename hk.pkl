@@ -7,6 +7,11 @@ steps {
   // ["mypy"] = (Builtins.mypy) { glob = List("src/**/*.py", "src/**/*.pyi", "tests/**/*.py"); check = "uv run mypy {{files}}" }
   // GitHub Actions must be pinned to commit SHAs, with the version as a comment.
   ["pinact"] = Builtins.pinact
+  // markdownlint-cli2 rather than the builtin's markdownlint-cli; both read .markdownlint.yaml.
+  ["markdown_lint"] = (Builtins.markdown_lint) {
+    check = "markdownlint-cli2 {{files}}"
+    fix = "markdownlint-cli2 --fix {{files}}"
+  }
   ["uv_lock"] {
     glob = List("pyproject.toml", "uv.lock")
     check = "uv lock --check"

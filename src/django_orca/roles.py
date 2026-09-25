@@ -86,6 +86,4 @@ class Role(ABC):
                 if parent in cls.get_models():
                     return True
         else:
-            return (
-                model._meta.model in cls.get_models()
-            )  # pylint: disable=protected-access
+            return model._meta.model in cls.get_models()  # pylint: disable=protected-access

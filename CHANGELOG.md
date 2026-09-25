@@ -4,6 +4,10 @@ All notable changes to django-orca. The format follows [Keep a Changelog](https:
 
 ## Unreleased
 
+### Changed
+
+- Development only: git hooks and linting run through hk (`mise run lint`, `mise run fix`) instead of pre-commit, and code is formatted with ruff instead of black. Markdown is linted with markdownlint-cli2.
+
 ### Removed
 
 - Unused helpers in `django_orca.utils`: `get_from_cache`, `delete_from_cache`, `generate_cache_key`, `get_parents` and `inherit_check`. Nothing in django-orca called them, and permission inheritance is handled by the role registry. Code that imported them directly will need to stop.

@@ -28,9 +28,7 @@ dev = [
     "rope",
     "pyparsing",
     "pydot",
-    "black",
     "django-migration-linter",
-    "pre-commit",
     "nplusone",
     "django-heavy-water>=0.3.0",
     "ruff",
@@ -95,10 +93,9 @@ directory = "tmp/htmlcov"
 output = "tmp/coverage.xml"
 
 [tool.ruff]
-target-version = "py311"
 src = ["src"]
 extend-exclude = ["**/migrations/**"]
-# Apply the excludes to files passed explicitly, e.g. by pre-commit.
+# Apply the excludes to files passed explicitly, e.g. by hk.
 force-exclude = true
 
 [tool.ruff.lint]

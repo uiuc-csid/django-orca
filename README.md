@@ -33,13 +33,13 @@ A role-based access control backend for django based on [django-improved-permiss
 - [ ] Test against a matrix of Python 3.10–3.14 and Django 4.2, 5.2 and 6.x.
 - [ ] Require Django 4.2 or later, and add classifiers and project URLs.
 - [ ] Remove ruff's `target-version`, so it follows `requires-python`.
-- [ ] Replace pre-commit and black with hk.
-- [ ] Update the GitHub Actions and pin them to commit SHAs.
+- [ ] Update the GitHub Actions to their current major versions (`checkout` and `codecov-action` are on v3).
 - [ ] Add a `py.typed` marker.
 - [ ] Remove or fix the `demo` task in `mise.toml`, which runs `tests.demo`.
 
 ### Done
 
+- [x] Replace pre-commit and black with hk
 - [x] Add separate cache so that role cache invalidation does not clear everything
 
 ## Questions

@@ -1,4 +1,4 @@
-""" permissions shortcuts """
+"""permissions shortcuts"""
 
 from .auth.checkers import has_permission, has_role
 from .auth.getters import (
