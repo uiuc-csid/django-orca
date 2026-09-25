@@ -179,6 +179,12 @@ class OrcaRegistry:
         """
         name = new_class.get_verbose_name()
 
+        if new_class.all_models:
+            # Roles for every model are assigned without an object, so they
+            # can't be unique to one. Their "models" list isn't used.
+            new_class.unique = False
+            return
+
         models_isvalid = True
         if hasattr(new_class, "models"):
             if isinstance(new_class.models, list):
@@ -193,18 +199,8 @@ class OrcaRegistry:
                         models_isvalid = False
                         break
                 new_class.models = valid_list
-            elif new_class.all_models:
-                # Role classes with ALL_MODELS autoimplies inherit=True.
-                new_class.inherit = True
-                new_class.unique = False
-                new_class.MODE = DENY_MODE
-                new_class.allow = []
-                new_class.deny = []
             else:
                 models_isvalid = False
-        elif new_class.all_models:
-            new_class.inherit = True
-            new_class.unique = False
         else:
             models_isvalid = False
 

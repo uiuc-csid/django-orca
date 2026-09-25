@@ -8,8 +8,6 @@ A role-based access control backend for django based on [django-improved-permiss
 
 ### Bugs
 
-- [ ] Enable `ALL_MODELS` mode. Roles with `all_models = True` can be assigned but grant nothing, and `get_objects()` crashes for users who have one.
-
 ### Design
 
 - [ ] Remove deny mode. `deny`, `inherit_deny` and the `inherit` flag are validated but ignored by `has_perm`.
@@ -21,7 +19,6 @@ A role-based access control backend for django based on [django-improved-permiss
 - [ ] Redirect anonymous users to the login page in the view mixins (call `handle_no_permission()`), and share `get_permission_object` between them.
 - [ ] Stop registering Django's `Permission` model in the admin.
 - [ ] Accept model classes in `Role.models`, and raise `ImproperlyConfigured` for unknown model names.
-- [ ] Sort rows before grouping them in `get_objects()`.
 
 ### Tooling
 
@@ -35,6 +32,8 @@ A role-based access control backend for django based on [django-improved-permiss
 
 ### Done
 
+- [x] Enable `ALL_MODELS` mode
+- [x] Sort rows before grouping them in `get_objects()`
 - [x] Remove the unused `RolePermission` rows
 - [x] Make `get_user_permissions`/`get_all_permissions` agree with `has_perm` and return strings
 - [x] Only attach the `post_delete` cleanup handler to models used by roles

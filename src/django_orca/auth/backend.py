@@ -29,9 +29,12 @@ class OrcaBackend(BaseBackend):
             return {
                 perm
                 for role in roles
-                # Roles for every model don't grant any permissions yet.
-                if not role.all_models
-                for perm in [*role.allow, *role.inherit_allow]
+                # Roles for every model only grant their "allow" permissions.
+                for perm in (
+                    role.allow
+                    if role.all_models
+                    else [*role.allow, *role.inherit_allow]
+                )
             }
 
         # Only the permissions some role grants, for the object's model or

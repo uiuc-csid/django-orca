@@ -10,7 +10,7 @@ from django_orca.registry import registry
 from django_orca.roles import Role
 
 from ..models import UserRole
-from ..utils import check_my_model, get_roleclass, object_ids
+from ..utils import check_my_model, get_roleclass, model_permissions, object_ids
 
 RoleQ = Optional[Type[Role]]
 ModelQ = Optional[Type[models.Model]]
@@ -57,8 +57,12 @@ def get_objects(user, role_class: RoleQ = None, model=None) -> List[Any]:
     if model:
         return list(get_qs_for_user(user, model=model, role_class=role_class))
     else:
-        query = get_userroles(user, role_class=role_class, model_class=model).values(
-            "content_type", "object_id"
+        # Roles for every model aren't attached to an object.
+        query = (
+            get_userroles(user, role_class=role_class, model_class=model)
+            .filter(content_type__isnull=False)
+            .order_by("content_type")
+            .values("content_type", "object_id")
         )
 
         objs: List[models.Model] = []
@@ -97,9 +101,21 @@ def get_objects_for_role(
         role_class=get_roleclass(role_class).get_class_name()
     )
 
+    if role_class.all_models:
+        # Roles for every model are assigned without an object, and grant
+        # their permissions on every object of the permission's model. That
+        # already covers parent models, so there is nothing to add for them.
+        if parent_model or permission not in role_class.allow:
+            return qs
+        if permission not in model_permissions(
+            model, include_parents=role_class.follow_model_inheritance
+        ):
+            return qs
+        global_roles = named_role_qs.filter(content_type__isnull=True)
+        return model._default_manager.filter(models.Exists(global_roles))
+
     if (
-        role_class.all_models
-        or (not parent_model and model in role_class.models)
+        (not parent_model and model in role_class.models)
         or (parent_model and parent_model in role_class.models)
     ) and permission in role_class.allow:
         if parent_model:
@@ -121,7 +137,7 @@ def get_objects_for_role(
         parents = registry.get_perm_inheritance_tree(model)
         for attname, parent in parents.items():
             # Check whether there is a role with allow_inherit
-            if role_class.all_models or parent in role_class.models:
+            if parent in role_class.models:
                 parent_ct = ContentType.objects.get_for_model(parent)
                 local_role_qs = named_role_qs.filter(content_type=parent_ct)
                 kwargs = {f"{attname}__in": object_ids(local_role_qs, parent)}

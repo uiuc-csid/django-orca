@@ -1,7 +1,7 @@
 import inspect
 import logging
 import time
-from typing import Optional, Type, Union
+from typing import Optional, Set, Type, Union
 
 from django.core.cache.backends.base import BaseCache
 from django.db import models
@@ -175,6 +175,25 @@ def object_ids(userroles, model) -> models.Subquery:
             "orca_object_pk"
         )
     )
+
+
+def model_permissions(model, include_parents=True) -> Set[str]:
+    """
+    Return the permissions of "model", as "app_label.codename" strings. With
+    "include_parents", the permissions of its multi-table inheritance parents
+    are included too.
+    """
+    result: Set[str] = set()
+    models_list = [model]
+    if include_parents:
+        models_list += model._meta.get_parent_list()
+    for current in models_list:
+        opts = current._meta
+        codenames = [
+            "%s_%s" % (action, opts.model_name) for action in opts.default_permissions
+        ] + [codename for codename, _ in opts.permissions]
+        result.update("%s.%s" % (opts.app_label, codename) for codename in codenames)
+    return result
 
 
 def check_my_model(role, obj):
