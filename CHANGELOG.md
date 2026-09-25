@@ -12,6 +12,10 @@ All notable changes to django-orca. The format follows [Keep a Changelog](https:
 
 - Unused helpers in `django_orca.utils`: `get_from_cache`, `delete_from_cache`, `generate_cache_key`, `get_parents` and `inherit_check`. Nothing in django-orca called them, and permission inheritance is handled by the role registry. Code that imported them directly will need to stop.
 
+### Fixed
+
+- Saving an existing `UserRole` again no longer fails with `IntegrityError`. Its permissions are only created when the role is first saved. `UserRole.save()` also passes its arguments, such as `update_fields` and `using`, on to Django.
+
 ## 0.1.0 - 2026-09-25
 
 ### Changed

@@ -70,9 +70,15 @@ class UserRole(models.Model):
             output += " of {obj}".format(obj=self.obj)
         return output
 
-    def save(self, *args, **kwargs):  # pylint: disable=arguments-differ,unused-argument
+    def save(self, *args, **kwargs):
         self.clean()
-        super().save()
+        creating = self._state.adding
+        super().save(*args, **kwargs)
+
+        # Permissions are only created along with the role, so saving an
+        # existing role again doesn't try to create them a second time.
+        if not creating:
+            return
 
         # non-object roles does not have specific
         # permissions auto created.
@@ -98,7 +104,7 @@ class UserRole(models.Model):
                     )
                 )
 
-        RolePermission.objects.bulk_create(role_instances)
+        RolePermission.objects.using(self._state.db).bulk_create(role_instances)
 
     def natural_key(self):
         return (self.user.id, self.role_class, self.content_type.id, self.object_id)
