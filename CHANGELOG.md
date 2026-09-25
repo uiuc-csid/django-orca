@@ -4,6 +4,8 @@ All notable changes to django-orca. The format follows [Keep a Changelog](https:
 
 ## Unreleased
 
+## 0.2.0 - 2026-09-25
+
 ### Upgrading from 0.1.0
 
 - **`get_user_permissions()` and `get_all_permissions()` return `"app_label.codename"` strings**, as Django expects, instead of `Permission` objects. For an object they now return exactly what `has_perm()` allows, including permissions inherited from parent objects, instead of the `RolePermission` rows saved when the role was assigned.

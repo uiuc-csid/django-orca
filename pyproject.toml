@@ -1,6 +1,6 @@
 [project]
 name = "django-orca"
-version = "0.1.0"
+version = "0.2.0"
 description = "A role-based access control backend for django"
 license = "BSD-3-Clause"
 license-files = ["LICENSE"]
